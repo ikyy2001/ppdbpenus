@@ -1,0 +1,221 @@
+@import "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap";
+@import 'tailwindcss';
+
+@source "../views";
+@source "../**";
+@source "../../resources/views";
+@source "../../app";
+
+@theme {
+  --color-brand-darkred: #7A1018;
+  --color-brand-deepred: #5C0B12;
+  --color-brand-mist: #DDDDDD;
+  --color-brand-softmist: #E8E8E8;
+  --color-brand-ink: #241012;
+  --color-brand-signal: #B72A32;
+  --color-brand-warmred: #D04A43;
+  --color-brand-rose: #A66B6E;
+  --color-brand-white: #FFFFFF;
+
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-pill: 999px;
+  --radius-extreme: 40px;
+  --radius-btn: 20px;
+  --radius-3xl: 24px;
+
+  --shadow-softpill: 0 8px 30px -8px rgba(36, 16, 18, 0.18);
+  --shadow-editorial: 0 24px 48px rgba(0, 0, 0, 0.08);
+
+  --letter-spacing-tighter: -0.02em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-eyebrow: 0.04em;
+}
+
+:root {
+  --color-darkred: #7A1018;
+  --color-deepred: #5C0B12;
+  --color-mist: #DDDDDD;
+  --color-softmist: #E8E8E8;
+  --color-ink: #241012;
+  --color-signal: #B72A32;
+  --color-warmred: #D04A43;
+  --color-rose: #A66B6E;
+  --radius-card: 1rem;
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: #F5F4F2;
+    color: #241012;
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: #7A1018;
+    color: #FFFFFF;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: inherit;
+    font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: 0.025em;
+  }
+
+  :focus-visible {
+    outline: 2px solid #7A1018;
+    outline-offset: 2px;
+  }
+}
+
+.max-w-canvas {
+  max-width: 1280px;
+}
+
+/* Card pattern matching mylovelyzh.com */
+.card-softpill {
+  border-radius: var(--radius-card, 1rem);
+  background-color: #ffffff;
+  border: 1px solid rgba(36, 16, 18, 0.08);
+  box-shadow: 0 8px 30px -8px rgba(36, 16, 18, 0.16);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-softpill:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px -6px rgba(36, 16, 18, 0.22);
+}
+
+.card-feature {
+  border-radius: var(--radius-card, 1rem);
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border: 1px solid rgba(36, 16, 18, 0.08);
+  box-shadow: 0 8px 30px -8px rgba(36, 16, 18, 0.14);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  .card-feature {
+    padding: 1.75rem;
+  }
+}
+
+.card-feature:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 36px -6px rgba(36, 16, 18, 0.20);
+}
+
+.font-editorial-h1 {
+  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.5rem, 5.5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.font-editorial-h2 {
+  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.font-editorial-h3 {
+  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+.font-editorial-eyebrow {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-editorial-body {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.ghost-typography {
+  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(4.5rem, 10vw, 8rem);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: 0.025em;
+  color: rgba(122, 16, 24, 0.07);
+  user-select: none;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.ghost-typography-white {
+  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(4.5rem, 10vw, 8rem);
+  font-weight: 700;
+  line-height: 0.85;
+  letter-spacing: 0.025em;
+  color: rgba(221, 221, 221, 0.06);
+  user-select: none;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
