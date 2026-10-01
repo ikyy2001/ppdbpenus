@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\PpdbController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,14 +9,14 @@ use Illuminate\Support\Facades\Route;
 | Web Routes - PPDB SMK Plus Pelita Nusantara
 |--------------------------------------------------------------------------
 | Ketentuan:
-| Semua rute utama diawali dengan /ppdb:
+| Semua rute publik & admin diawali dengan /ppdb:
 | - /ppdb                                    -> Form Pendaftaran Siswa
 | - /ppdb/akomodasi                          -> Biaya & Info Pembiayaan
 | - /ppdb/pengumuman                         -> Daftar Pengumuman PPDB
 | - /ppdb/cek-status                         -> Cek Status Pendaftar (Input NISN)
-| - /ppdb/dashboard                          -> Dashboard Admin Page
-| - /ppdb/dashboard/pendaftar                -> List Pendaftar (Pagination & Filter)
-| - /ppdb/dashboard/pendaftar/{id_pendaftar} -> Detail Pendaftar & Form Update
+| - /ppdb/cetak-kartu/{id}                   -> Cetak Kartu Tanda Peserta Resmi
+| - /ppdb/login                              -> Login Admin (Password Only)
+| - /ppdb/dashboard/*                        -> Dilindungi AdminPasswordAuth
 */
 
 // Root redirect to /ppdb
@@ -23,28 +24,57 @@ Route::get('/', function () {
     return redirect('/ppdb');
 });
 
-// Primary PPDB Routes (Semua diawali /ppdb)
+// Primary PPDB Routes
 Route::prefix('ppdb')->group(function () {
-    // Public routes
+    // 1. Public Routes
     Route::get('/', [PpdbController::class, 'index'])->name('ppdb.index');
     Route::post('/daftar', [PpdbController::class, 'store'])->name('ppdb.store');
     Route::get('/akomodasi', [PpdbController::class, 'akomodasi'])->name('ppdb.akomodasi');
     Route::get('/pengumuman', [PpdbController::class, 'pengumuman'])->name('ppdb.pengumuman');
     Route::get('/cek-status', [PpdbController::class, 'cekStatus'])->name('ppdb.cek-status');
+    Route::get('/cetak-kartu/{id}', [PpdbController::class, 'cetakKartu'])->name('ppdb.cetak-kartu');
 
-    // Dashboard Admin Routes
-    Route::get('/dashboard', [PpdbController::class, 'dashboard'])->name('ppdb.dashboard');
-    Route::get('/dashboard/pendaftar', [PpdbController::class, 'pendaftarList'])->name('ppdb.dashboard.pendaftar');
-    Route::get('/dashboard/pendaftar/{id}', [PpdbController::class, 'pendaftarDetail'])->name('ppdb.dashboard.pendaftar.detail');
-    Route::put('/dashboard/pendaftar/{id}', [PpdbController::class, 'pendaftarUpdate'])->name('ppdb.dashboard.pendaftar.update');
-    Route::patch('/dashboard/pendaftar/{id}/status', [PpdbController::class, 'updateStatus'])->name('ppdb.dashboard.pendaftar.status');
-    Route::delete('/dashboard/pendaftar/{id}', [PpdbController::class, 'pendaftarDestroy'])->name('ppdb.dashboard.pendaftar.destroy');
+    // 2. Authentication (Password Only)
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('ppdb.login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('ppdb.login.submit');
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('ppdb.logout');
+    Route::get('/logout', [AdminAuthController::class, 'logout']); // Fallback GET logout
 
-    // Backward compatibility for status patch
-    Route::patch('/dashboard/{id}/status', [PpdbController::class, 'updateStatus'])->name('ppdb.dashboard.status');
+    // 3. Protected Dashboard Admin Routes
+    Route::middleware(['admin.auth'])->prefix('dashboard')->group(function () {
+        // Overview & Pendaftar
+        Route::get('/', [PpdbController::class, 'dashboard'])->name('ppdb.dashboard');
+        Route::get('/pendaftar', [PpdbController::class, 'pendaftarList'])->name('ppdb.dashboard.pendaftar');
+        Route::get('/pendaftar/export', [PpdbController::class, 'exportPendaftar'])->name('ppdb.dashboard.pendaftar.export');
+        Route::get('/pendaftar/{id}', [PpdbController::class, 'pendaftarDetail'])->name('ppdb.dashboard.pendaftar.detail');
+        Route::put('/pendaftar/{id}', [PpdbController::class, 'pendaftarUpdate'])->name('ppdb.dashboard.pendaftar.update');
+        Route::patch('/pendaftar/{id}/status', [PpdbController::class, 'updateStatus'])->name('ppdb.dashboard.pendaftar.status');
+        Route::delete('/pendaftar/{id}', [PpdbController::class, 'pendaftarDestroy'])->name('ppdb.dashboard.pendaftar.destroy');
+
+        // Manajemen Gelombang PPDB
+        Route::get('/gelombang', [PpdbController::class, 'gelombangIndex'])->name('ppdb.dashboard.gelombang');
+        Route::post('/gelombang', [PpdbController::class, 'gelombangStore'])->name('ppdb.dashboard.gelombang.store');
+        Route::put('/gelombang/{id}', [PpdbController::class, 'gelombangUpdate'])->name('ppdb.dashboard.gelombang.update');
+        Route::patch('/gelombang/{id}/aktifkan', [PpdbController::class, 'gelombangSetActive'])->name('ppdb.dashboard.gelombang.activate');
+        Route::delete('/gelombang/{id}', [PpdbController::class, 'gelombangDestroy'])->name('ppdb.dashboard.gelombang.destroy');
+
+        // Manajemen Pengumuman
+        Route::get('/pengumuman', [PpdbController::class, 'pengumumanIndex'])->name('ppdb.dashboard.pengumuman');
+        Route::post('/pengumuman', [PpdbController::class, 'pengumumanStore'])->name('ppdb.dashboard.pengumuman.store');
+        Route::put('/pengumuman/{id}', [PpdbController::class, 'pengumumanUpdate'])->name('ppdb.dashboard.pengumuman.update');
+        Route::patch('/pengumuman/{id}/pin', [PpdbController::class, 'pengumumanTogglePin'])->name('ppdb.dashboard.pengumuman.pin');
+        Route::delete('/pengumuman/{id}', [PpdbController::class, 'pengumumanDestroy'])->name('ppdb.dashboard.pengumuman.destroy');
+
+        // Manajemen Akomodasi & Biaya
+        Route::get('/akomodasi', [PpdbController::class, 'akomodasiIndex'])->name('ppdb.dashboard.akomodasi');
+        Route::post('/akomodasi', [PpdbController::class, 'akomodasiUpdate'])->name('ppdb.dashboard.akomodasi.update');
+
+        // Backward compatibility
+        Route::patch('/{id}/status', [PpdbController::class, 'updateStatus'])->name('ppdb.dashboard.status');
+    });
 });
 
-// Short redirects to keep URLs clean
+// Short redirects to keep clean URLs
 Route::get('/akomodasi', fn() => redirect('/ppdb/akomodasi'));
 Route::get('/pengumuman', fn() => redirect('/ppdb/pengumuman'));
 Route::get('/cek-status', fn() => redirect('/ppdb/cek-status'));
@@ -52,4 +82,3 @@ Route::get('/dashboard', fn() => redirect('/ppdb/dashboard'));
 Route::get('/dashboard/pendaftar', fn() => redirect('/ppdb/dashboard/pendaftar'));
 Route::get('/dashboard/pendaftar/{id}', fn($id) => redirect('/ppdb/dashboard/pendaftar/' . $id));
 Route::post('/daftar', [PpdbController::class, 'store']);
-Route::patch('/dashboard/{id}/status', [PpdbController::class, 'updateStatus']);

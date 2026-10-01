@@ -59,7 +59,7 @@
             `• Pertanyaan / Catatan: ${this.konsultasiForm.catatan || '-'}\n\n` +
             `Mohon petunjuk prosedur pendaftaran dan rincian pembayarannya. Terima kasih!`
         );
-        window.open(`https://wa.me/6281210868958?text=${text}`, '_blank');
+        window.open(`https://wa.me/{{ $kontakWa ?? '6281283921029' }}?text=${text}`, '_blank');
     }
 }" class="min-h-screen bg-[#F5F4F2] flex flex-col font-sans text-brand-ink antialiased">
 

@@ -69,6 +69,17 @@
 
                 <!-- Action Buttons using PillButton -->
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 no-print">
+                    <template x-if="submissionData.id">
+                        <a
+                            :href="'/ppdb/cetak-kartu/' + submissionData.id"
+                            target="_blank"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-full shadow-md text-sm font-semibold transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Cetak Kartu Peserta</span>
+                        </a>
+                    </template>
+
                     <button
                         type="button"
                         @click="window.print()"
@@ -128,7 +139,7 @@
                     <!-- Left Content -->
                     <div class="z-10 max-w-2xl">
                         <span class="font-display text-[#E5B5B8] tracking-wider uppercase block mb-2.5 text-xs font-bold">
-                            PENERIMAAN PESERTA DIDIK BARU 2027/2028
+                            PENERIMAAN PESERTA DIDIK BARU {{ $activeWave->tahun_ajaran ?? '2027/2028' }} &bull; {{ $activeWave->nama ?? 'Gelombang 1' }}
                         </span>
                         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-wide !text-white leading-tight drop-shadow-sm font-display uppercase" style="color: #ffffff !important;">
                             Formulir Pendaftaran Siswa

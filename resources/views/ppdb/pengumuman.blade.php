@@ -5,120 +5,11 @@
 @section('content')
 <div x-data="{
     searchQuery: '',
-    selectedKategori: 'Semua Kategori',
+    selectedKategori: '{{ $kategori === 'semua' ? 'Semua Kategori' : $kategori }}',
     onlyImportant: false,
     selectedPengumuman: null,
 
-    daftarPengumuman: [
-        {
-            id: 'pengumuman-01',
-            judul: 'Pengumuman Hasil Verifikasi Berkas Seleksi Administrasi PPDB Gelombang 1',
-            nomorSk: '084/PPDB-SMKPNB/IX/2026',
-            tanggal: '20 September 2026',
-            kategori: 'Hasil Seleksi & Kelulusan',
-            badge: 'PENTING',
-            isPinned: true,
-            ringkasan: 'Berdasarkan hasil sidang pleno panitia PPDB SMK Plus Pelita Nusantara, berikut daftar nama calon siswa yang dinyatakan Lolos Seleksi Berkas Administrasi Gelombang 1 dan berhak melanjutkan ke Tahapan Observasi & Wawancara.',
-            isiLengkap: `### KEPUTUSAN PANITIA PENERIMAAN PESERTA DIDIK BARU (PPDB)\n### SMK PLUS PELITA NUSANTARA BOGOR\n**NOMOR: 084/PPDB-SMKPNB/IX/2026**\n\nTentang:\n**PENETAPAN HASIL SELEKSI ADMINISTRASI CALON PESERTA DIDIK BARU GELOMBANG 1 TAHUN AJARAN 2027/2028**\n\nMenimbang hasil verifikasi kelengkapan berkas fisik dan digital yang diunggah calon siswa per tanggal 1 hingga 19 September 2026, Panitia PPDB menetapkan:\n\n1. **Hasil Rekapitulasi Berkas Masuk:**\n   - Jumlah Formulir Masuk: **342 Pendaftar**\n   - Dinyatakan Memenuhi Syarat (MS / Lolos Berkas): **318 Calon Siswa**\n   - Perlu Perbaikan Berkas Dokumen: **24 Calon Siswa**\n\n2. **Tindak Lanjut Peserta Lolos Administrasi:**\n   - Peserta yang dinyatakan lolos wajib mencetak **Kartu Tanda Peserta PPDB** melalui portal Cek Status NISN.\n   - Peserta dijadwalkan hadir mengikuti **Observasi Minat & Bakat Kejuruan** pada Sabtu, 28 September 2026 sesuai sesi masing-masing.\n\n3. **Peserta yang Memerlukan Perbaikan Berkas:**\n   - Diberikan waktu perbaikan scan rapor dan dokumen identitas hingga Rabu, 25 September 2026 pukul 16.00 WIB melalui akun portal PPDB atau menghubungi sekretariat.`,
-            fileAttachment: {
-                nama: 'SK_Kelulusan_Administrasi_Gel1_Penus_2027.pdf',
-                ukuran: '1.8 MB',
-                url: 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf'
-            },
-            actionLink: '/ppdb/cek-status',
-            actionText: 'Cek Status NISN Anda'
-        },
-        {
-            id: 'pengumuman-02',
-            judul: 'Jadwal dan Panduan Teknis Pelaksanaan Observasi Minat & Bakat Siswa Gelombang 1',
-            nomorSk: '081/PPDB-SMKPNB/IX/2026',
-            tanggal: '18 September 2026',
-            kategori: 'Tes Observasi & Wawancara',
-            badge: 'TERBARU',
-            isPinned: false,
-            ringkasan: 'Pelaksanaan observasi potensi kejuruan, tes minat bakat digital, dan wawancara kepribadian calon siswa baru akan dilaksanakan secara luring (offline) bertempat di Kampus SMK Plus Pelita Nusantara Cibinong.',
-            isiLengkap: `### PANDUAN OBSERVASI MINAT & BAKAT KEJURUAN\n**SMK PLUS PELITA NUSANTARA BOGOR**\n\nKepada Yth. Calon Siswa dan Orang Tua/Wali Murid,\n\nPanitia PPDB menginformasikan tata cara dan panduan pelaksanaan kegiatan Observasi Minat dan Bakat:\n\n1. **Hari & Tanggal Pelaksanaan:**\n   - Hari: **Sabtu, 28 September 2026**\n   - Sesi Pagi: 08.00 – 11.30 WIB (PPLG, Animasi, DKV)\n   - Sesi Siang: 12.30 – 16.00 WIB (TJKT, BC, AKL, MPLB)\n\n2. **Tempat:**\n   - Kampus SMK Plus Pelita Nusantara, Jl. Raya Golf Ciriung No. 1, Cibinong.\n   - Ruang Uji: Lab Komputer 1-4 dan Gedung Multimedia Kreatif.\n\n3. **Tata Tertib & Perlengkapan Wajib:**\n   - Mengenakan seragam asal SMP/MTs (rapi dan sopan) atau kemeja putih celana panjang gelap serta sepatu tertutup.\n   - Membawa cetakan Formulir Pendaftaran / Kartu Peserta PPDB.\n   - Membawa alat tulis (pensil 2B, pulpen, penghapus).\n   - Khusus pilihan jurusan **DKV dan Animasi**, diperbolehkan membawa portofolio karya gambar/desain (jika ada).`,
-            fileAttachment: {
-                nama: 'Juknis_Observasi_MinatBakat_Gel1.pdf',
-                ukuran: '920 KB',
-                url: 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf'
-            },
-            actionLink: null,
-            actionText: null
-        },
-        {
-            id: 'pengumuman-03',
-            judul: 'Alur dan Petunjuk Teknis Daftar Ulang Peserta Lolos Jalur Reguler & Prestasi',
-            nomorSk: '078/PPDB-SMKPNB/IX/2026',
-            tanggal: '15 September 2026',
-            kategori: 'Daftar Ulang & Seragam',
-            badge: 'PENTING',
-            isPinned: false,
-            ringkasan: 'Informasi tata cara penyelesaian daftar ulang, pembayaran uang pangkal / DSP, pengukuran seragam sekolah 5 stel, serta pengumpulan berkas fisik asli.',
-            isiLengkap: `### PETUNJUK TEKNIS DAFTAR ULANG PESERTA LULUS\n**SMK PLUS PELITA NUSANTARA BOGOR**\n\nBagi calon siswa yang telah dinyatakan LULUS SELEKSI AKHIR, harap memperhatikan tenggat waktu dan prosedur daftar ulang berikut:\n\n1. **Batas Waktu Daftar Ulang:**\n   - Tanggal: **15 September s.d. 05 Oktober 2026**\n   - Layanan loket fisik buka: Senin – Sabtu, pukul 08.00 – 15.00 WIB.\n\n2. **Dokumen Fisik yang Wajib Diserahkan:**\n   - Fotokopi Ijazah / Surat Keterangan Lulus (SKL) SMP legalisir (2 lembar).\n   - Fotokopi Akta Kelahiran dan Kartu Keluarga (2 lembar).\n   - Pas foto ukuran 3x4 (latar merah) sebanyak 4 lembar.\n   - Surat Pernyataan Tata Tertib bermaterai Rp 10.000 (disediakan sekolah).\n\n3. **Pengukuran Seragam Sekolah:**\n   - Pengukuran langsung di Butik Tata Busana Kampus Penus.\n   - Meliputi: Seragam Putih Abu, Seragam Kotak-Kotak Khas Penus, Baju Praktek Jurusan, Baju Olahraga, dan Jas Almamater.`,
-            fileAttachment: {
-                nama: 'Buku_Panduan_Daftar_Ulang_PPDB_2027.pdf',
-                ukuran: '1.4 MB',
-                url: 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf'
-            },
-            actionLink: '/ppdb/cek-status',
-            actionText: 'Cek Rincian Biaya Anda'
-        },
-        {
-            id: 'pengumuman-04',
-            judul: 'Pembukaan Resmi Pendaftaran Siswa Baru PPDB Gelombang 2 Tahun 2027/2028',
-            nomorSk: '072/PPDB-SMKPNB/IX/2026',
-            tanggal: '10 September 2026',
-            kategori: 'Jadwal & Gelombang',
-            badge: 'GELOMBANG',
-            isPinned: false,
-            ringkasan: 'SMK Plus Pelita Nusantara resmi membuka pendaftaran Gelombang 2 untuk 7 program keahlian unggulan berstandar industri dengan kuota terbatas.',
-            isiLengkap: `### PEMBUKAAN GELOMBANG 2 PENERIMAAN PESERTA DIDIK BARU\n**TAHUN AJARAN 2027/2028**\n\nKabar gembira bagi calon peserta didik yang belum sempat mendaftar pada Gelombang 1. SMK Plus Pelita Nusantara membuka kuota tambahan untuk Gelombang 2 dengan periode pendaftaran:\n\n- **Masa Pendaftaran:** 01 Oktober 2026 – 31 Desember 2026\n- **Jurusan yang Tersedia:**\n  1. Pengembangan Perangkat Lunak dan Gim (PPLG) - Sisa Kuota 18 Kursi\n  2. Teknik Jaringan Komputer dan Telekomunikasi (TJKT) - Sisa Kuota 22 Kursi\n  3. Desain Komunikasi Visual (DKV) - Sisa Kuota 15 Kursi\n  4. Animasi - Sisa Kuota 12 Kursi\n  5. Broadcasting dan Perfilman (BC) - Sisa Kuota 14 Kursi\n  6. Akuntansi dan Keuangan Lembaga (AKL) - Sisa Kuota 20 Kursi\n  7. Manajemen Perkantoran dan Layanan Bisnis (MPLB) - Sisa Kuota 25 Kursi`,
-            fileAttachment: {
-                nama: 'Brosur_Resmi_PPDB_Gelombang2.pdf',
-                ukuran: '2.3 MB',
-                url: 'https://images.lekar.co.id/419/2025/file//2025112110025011_brosur_penus_lipat_3_bagian_depan_&_belakang_compressed.pdf'
-            },
-            actionLink: '/ppdb',
-            actionText: 'Buka Formulir Pendaftaran'
-        },
-        {
-            id: 'pengumuman-05',
-            judul: 'Ketentuan Pengambilan Ukuran Seragam Sekolah dan Kelengkapan Atribut Taruna',
-            nomorSk: '067/PPDB-SMKPNB/IX/2026',
-            tanggal: '05 September 2026',
-            kategori: 'Daftar Ulang & Seragam',
-            badge: 'INFORMASI',
-            isPinned: false,
-            ringkasan: 'Petunjuk pemilihan ukuran pakaian seragam (S, M, L, XL, XXL) serta jadwal fitting di sekolah guna memastikan kerapian taruna/siswa saat tahun ajaran baru dimulai.',
-            isiLengkap: `### KETENTUAN STANDAR UKURAN SERAGAM SISWA\n**SMK PLUS PELITA NUSANTARA**\n\nSeluruh calon siswa yang telah menyelesaikan proses daftar ulang dipersilakan melakukan pemilihan ukuran seragam sesuai standar konveksi sekolah:\n\n1. **Paket Seragam Meliputi:**\n   - 1 Stel Seragam Putih Abu Lengkap\n   - 1 Stel Seragam Batik / Khas Kotak-Kotak Penus\n   - 1 Stel Seragam Wearpack / Praktek Bengkel Kejuruan\n   - 1 Stel Pakaian Olahraga\n   - 1 Buah Jas Almamater Penus\n   - Kelengkapan Atribut: Dasi, Topi, Sabuk Kulit Berlogo, dan Kaos Kaki\n\n2. **Tabel Panduan Ukuran (Size Chart):**\n   - S: Lingkar Dada 96 cm, Panjang Baju 68 cm\n   - M: Lingkar Dada 100 cm, Panjang Baju 70 cm\n   - L: Lingkar Dada 104 cm, Panjang Baju 72 cm\n   - XL: Lingkar Dada 110 cm, Panjang Baju 75 cm\n   - XXL: Lingkar Dada 116 cm, Panjang Baju 78 cm`,
-            fileAttachment: {
-                nama: 'Panduan_SizeChart_Seragam_Penus.pdf',
-                ukuran: '640 KB',
-                url: 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf'
-            },
-            actionLink: null,
-            actionText: null
-        },
-        {
-            id: 'pengumuman-06',
-            judul: 'Informasi Program Beasiswa Prestasi Akademik, Tahfidz Qur\'an & Atlet Olahraga',
-            nomorSk: '060/PPDB-SMKPNB/IX/2026',
-            tanggal: '01 September 2026',
-            kategori: 'Beasiswa & Afirmasi',
-            badge: 'BEASISWA',
-            isPinned: false,
-            ringkasan: 'SMK Plus Pelita Nusantara memberikan apresiasi berupa beasiswa potongan biaya Dana Sumbangan Pendidikan (DSP) hingga 100% bagi siswa berprestasi di tingkat Kota/Kabupaten, Provinsi, maupun Nasional.',
-            isiLengkap: `### PROGRAM BEASISWA UNGGULAN VOKASI TAHUN 2027\n**SMK PLUS PELITA NUSANTARA BOGOR**\n\nSebagai wujud komitmen mendukung generasi berprestasi, yayasan menyelenggarakan program beasiswa pendaftaran baru:\n\n1. **Kategori Beasiswa:**\n   - **Beasiswa Prestasi Akademik:** Juara 1, 2, 3 OSN / KSN / Rapor Peringkat 1 Umum di SMP (Potongan DSP 50% - 100%).\n   - **Beasiswa Tahfidz Qur'an:** Hafalan minimal 3 Juz Al-Qur'an mutqin (Bebas Biaya SPP 1 Tahun).\n   - **Beasiswa Olahraga & Seni:** Juara O2SN / FLS2N tingkat Kota/Provinsi (Bebas Biaya Formulir & Potongan DSP).\n   - **Beasiswa KETM / Afirmasi:** Pemegang KIP / PKH / SKTM yang lolos verifikasi faktual panitia.\n\n2. **Prosedur Pengajuan Beasiswa:**\n   - Lampirkan sertifikat/piagam kejuaraan asli pada saat wawancara observasi minat bakat.\n   - Mengikuti tes uji hafalan langsung bagi pendaftar jalur Tahfidz.`,
-            fileAttachment: {
-                nama: 'Syarat_Ketentuan_Beasiswa_Prestasi_2027.pdf',
-                ukuran: '980 KB',
-                url: 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf'
-            },
-            actionLink: '/ppdb',
-            actionText: 'Daftar Jalur Prestasi'
-        }
-    ],
+    daftarPengumuman: @json($pengumumanList ?? []),
 
     get filteredList() {
         return this.daftarPengumuman.filter(item => {
@@ -316,15 +207,18 @@
                     </h3>
 
                     <div class="space-y-1.5">
-                        @foreach(['Semua Kategori', 'Hasil Seleksi & Kelulusan', 'Jadwal & Gelombang', 'Tes Observasi & Wawancara', 'Daftar Ulang & Seragam', 'Beasiswa & Afirmasi'] as $kategori)
+                        @php
+                            $categories = isset($kategoriList) && count($kategoriList) > 0 ? array_merge(['Semua Kategori'], $kategoriList) : ['Semua Kategori', 'Hasil Seleksi & Kelulusan', 'Jadwal & Gelombang', 'Tes Observasi & Wawancara', 'Daftar Ulang & Seragam', 'Informasi Beasiswa', 'Informasi Umum'];
+                        @endphp
+                        @foreach(array_unique($categories) as $kategoriItem)
                         <button
                             type="button"
-                            @click="selectedKategori = '{{ $kategori }}'"
-                            :class="selectedKategori === '{{ $kategori }}' ? 'bg-brand-darkred text-white shadow-xs' : 'text-brand-ink/75 hover:bg-brand-softmist/60 hover:text-brand-ink'"
+                            @click="selectedKategori = '{{ $kategoriItem }}'"
+                            :class="selectedKategori === '{{ $kategoriItem }}' ? 'bg-brand-darkred text-white shadow-xs' : 'text-brand-ink/75 hover:bg-brand-softmist/60 hover:text-brand-ink'"
                             class="w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-between transition-all cursor-pointer"
                         >
-                            <span>{{ $kategori }}</span>
-                            <svg x-show="selectedKategori === '{{ $kategori }}'" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            <span>{{ $kategoriItem }}</span>
+                            <svg x-show="selectedKategori === '{{ $kategoriItem }}'" class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                         @endforeach
                     </div>

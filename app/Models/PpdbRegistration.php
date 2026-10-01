@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PpdbRegistration extends Model
 {
@@ -17,6 +18,14 @@ class PpdbRegistration extends Model
         'jenis_layanan' => 'array',
         'sumber_info' => 'array',
     ];
+
+    /**
+     * Relasi ke gelombang pendaftaran
+     */
+    public function gelombang(): BelongsTo
+    {
+        return $this->belongsTo(PpdbWave::class, 'gelombang_id');
+    }
 
     /**
      * Helper formatting tanggal lahir
@@ -48,6 +57,11 @@ class PpdbRegistration extends Model
                 'label' => 'Lulus Seleksi',
                 'bg' => 'bg-blue-50 text-blue-700 border-blue-200',
                 'dot' => 'bg-blue-500',
+            ],
+            'tidak_lulus' => [
+                'label' => 'Tidak Lolos',
+                'bg' => 'bg-rose-50 text-rose-700 border-rose-200',
+                'dot' => 'bg-rose-500',
             ],
             default => [
                 'label' => 'Menunggu Verifikasi',
