@@ -75,6 +75,20 @@
 
 <body x-data="{ sidebarOpen: false, profileDropdown: false, notifDropdown: false }"
     class="admin-body h-full bg-[#F8F9FA] text-[#0F172A] font-sans antialiased selection:bg-[#8B1D24] selection:text-white">
+@php
+    $authUser = $authUser ?? request()->auth_user ?? request()->attributes->get('auth_user') ?? [];
+    $userName = $authUser['nama_lengkap'] ?? $authUser['username'] ?? 'Panitia PPDB';
+    $userRole = strtoupper((string) ($authUser['role'] ?? 'ADMINISTRATOR'));
+    $userEmail = $authUser['email'] ?? (!empty($authUser['username']) ? $authUser['username'] . '@sekolah.sch.id' : 'admin@smkpluspelitanusantara.sch.id');
+    
+    // Inisial untuk avatar
+    $nameParts = preg_split('/\s+/', trim((string) $userName));
+    $initials = '';
+    foreach (array_slice($nameParts, 0, 2) as $part) {
+        $initials .= strtoupper(substr($part, 0, 1));
+    }
+    $initials = $initials ?: 'PA';
+@endphp
     <div class="min-h-screen flex flex-row">
 
         <!-- MOBILE SLIDE-OVER DRAWER -->
@@ -446,13 +460,17 @@
                     <div class="relative">
                         <button @click="profileDropdown = !profileDropdown"
                             class="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-full hover:bg-slate-100 bg-white cursor-pointer transition-colors border border-slate-200/60">
-                            <div
-                                class="w-8 h-8 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                                PA
-                            </div>
+                            @if (!empty($authUser['foto_profil']))
+                                <img src="{{ $authUser['foto_profil'] }}" alt="{{ $userName }}" class="w-8 h-8 rounded-full object-cover shadow-xs border border-slate-200">
+                            @else
+                                <div
+                                    class="w-8 h-8 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                                    {{ $initials }}
+                                </div>
+                            @endif
                             <div class="hidden sm:block text-left">
-                                <div class="text-xs font-bold text-[#0F172A] leading-tight">Panitia PPDB</div>
-                                <div class="text-[10px] text-[#64748B] leading-tight">Administrator</div>
+                                <div class="text-xs font-bold text-[#0F172A] leading-tight">{{ $userName }}</div>
+                                <div class="text-[10px] text-[#64748B] leading-tight font-medium">{{ $userRole }}</div>
                             </div>
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -468,8 +486,9 @@
                             x-transition:enter-start="opacity-0 scale-95"
                             x-transition:enter-end="opacity-100 scale-100">
                             <div class="px-3 py-2.5 border-b border-slate-100 mb-1">
-                                <div class="font-bold text-slate-900">Panitia PPDB 2027</div>
-                                <div class="text-[10px] text-slate-500 truncate">admin@smkpluspelitanusantara.sch.id</div>
+                                <div class="font-bold text-slate-900 truncate">{{ $userName }}</div>
+                                <div class="text-[10px] text-slate-500 truncate">{{ $userEmail }}</div>
+                                <span class="inline-block mt-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700 tracking-wider">{{ $userRole }}</span>
                             </div>
                             <a href="{{ route('ppdb.dashboard') }}"
                                 class="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 text-slate-700 font-medium transition-colors">

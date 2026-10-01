@@ -7,6 +7,7 @@ use App\Models\PpdbRegistration;
 use App\Models\PpdbWave;
 use Database\Seeders\PpdbSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class PpdbBackendTest extends TestCase
@@ -18,6 +19,24 @@ class PpdbBackendTest extends TestCase
         parent::setUp();
         $this->seed(PpdbSeeder::class);
     }
+
+    protected function fakeAuthAdmin(): void
+    {
+        Http::fake([
+            '*/api/user/verify' => Http::response([
+                'success' => true,
+                'message' => 'Token terverifikasi',
+                'data' => [
+                    'id' => 'admin-123',
+                    'username' => 'admin',
+                    'nama_lengkap' => 'Panitia PPDB',
+                    'role' => 'ADMIN',
+                    'status_aktif' => true,
+                ],
+            ], 200),
+        ]);
+    }
+
     /**
      * Test public pages load successfully
      */
@@ -53,70 +72,76 @@ class PpdbBackendTest extends TestCase
     }
 
     /**
-     * Test dashboard is protected by password authentication middleware
+     * Test dashboard is protected by verify.auth middleware
      */
     public function test_dashboard_requires_authentication(): void
     {
-        $response = $this->get('/ppdb/dashboard');
-        $response->assertRedirect(route('ppdb.login'));
+        $response = $this->getJson('/ppdb/dashboard');
+        $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Token otentikasi tidak ditemukan',
+            ]);
 
-        $responsePendaftar = $this->get('/ppdb/dashboard/pendaftar');
-        $responsePendaftar->assertRedirect(route('ppdb.login'));
+        $responsePendaftar = $this->getJson('/ppdb/dashboard/pendaftar');
+        $responsePendaftar->assertStatus(401);
 
-        $responseGelombang = $this->get('/ppdb/dashboard/gelombang');
-        $responseGelombang->assertRedirect(route('ppdb.login'));
+        $responseGelombang = $this->getJson('/ppdb/dashboard/gelombang');
+        $responseGelombang->assertStatus(401);
 
-        $responsePengumuman = $this->get('/ppdb/dashboard/pengumuman');
-        $responsePengumuman->assertRedirect(route('ppdb.login'));
+        $responsePengumuman = $this->getJson('/ppdb/dashboard/pengumuman');
+        $responsePengumuman->assertStatus(401);
 
-        $responseAkomodasi = $this->get('/ppdb/dashboard/akomodasi');
-        $responseAkomodasi->assertRedirect(route('ppdb.login'));
+        $responseAkomodasi = $this->getJson('/ppdb/dashboard/akomodasi');
+        $responseAkomodasi->assertStatus(401);
     }
 
     /**
-     * Test login with invalid password fails
+     * Test access with invalid token fails
      */
-    public function test_login_with_wrong_password_fails(): void
+    public function test_dashboard_with_invalid_token_fails(): void
     {
-        $response = $this->post('/ppdb/login', [
-            'password' => 'wrong_password_123',
+        Http::fake([
+            '*/api/user/verify' => Http::response([
+                'success' => false,
+                'message' => 'access_token tidak valid',
+            ], 401),
         ]);
 
-        $response->assertSessionHasErrors('password');
-        $this->assertNull(session('admin_authenticated'));
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token')
+            ->getJson('/ppdb/dashboard');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'message' => 'access_token tidak valid',
+            ]);
     }
 
     /**
-     * Test login with correct password succeeds and grants access
+     * Test dashboard accessible with valid token
      */
-    public function test_login_with_correct_password_succeeds(): void
+    public function test_dashboard_accessible_with_authenticated_token(): void
     {
-        $adminPassword = env('ADMIN_PASSWORD', 'adminpenus2026');
+        $this->fakeAuthAdmin();
 
-        $response = $this->post('/ppdb/login', [
-            'password' => $adminPassword,
-        ]);
-
-        $response->assertRedirect(route('ppdb.dashboard'));
-        $response->assertSessionHas('admin_authenticated', true);
-
-        // Access dashboard with authenticated session
-        $authResponse = $this->withSession(['admin_authenticated' => true])->get('/ppdb/dashboard');
+        // Access dashboard with authenticated token
+        $authResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')->get('/ppdb/dashboard');
         $authResponse->assertStatus(200);
         $authResponse->assertSee('Halo, Panitia PPDB');
 
         // Access Gelombang
-        $gelombangResponse = $this->withSession(['admin_authenticated' => true])->get('/ppdb/dashboard/gelombang');
+        $gelombangResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')->get('/ppdb/dashboard/gelombang');
         $gelombangResponse->assertStatus(200);
         $gelombangResponse->assertSee('Daftar Gelombang Penerimaan');
 
         // Access Pengumuman
-        $pengumumanResponse = $this->withSession(['admin_authenticated' => true])->get('/ppdb/dashboard/pengumuman');
+        $pengumumanResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')->get('/ppdb/dashboard/pengumuman');
         $pengumumanResponse->assertStatus(200);
         $pengumumanResponse->assertSee('Daftar Pengumuman');
 
         // Access Akomodasi settings
-        $akomodasiResponse = $this->withSession(['admin_authenticated' => true])->get('/ppdb/dashboard/akomodasi');
+        $akomodasiResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')->get('/ppdb/dashboard/akomodasi');
         $akomodasiResponse->assertStatus(200);
         $akomodasiResponse->assertSee('Konfigurasi Tarif PPDB');
     }
@@ -126,7 +151,9 @@ class PpdbBackendTest extends TestCase
      */
     public function test_export_pendaftar_csv_returns_stream(): void
     {
-        $response = $this->withSession(['admin_authenticated' => true])
+        $this->fakeAuthAdmin();
+
+        $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->get('/ppdb/dashboard/pendaftar/export');
 
         $response->assertStatus(200);
@@ -134,15 +161,12 @@ class PpdbBackendTest extends TestCase
     }
 
     /**
-     * Test logout terminates session
+     * Test logout clears session cookie
      */
     public function test_logout_terminates_session(): void
     {
-        $response = $this->withSession(['admin_authenticated' => true])
-            ->post('/ppdb/logout');
-
-        $response->assertRedirect(route('ppdb.login'));
-        $this->assertNull(session('admin_authenticated'));
+        $response = $this->post('/ppdb/logout');
+        $response->assertRedirect('/ppdb');
     }
 
     /**
@@ -190,10 +214,11 @@ class PpdbBackendTest extends TestCase
      */
     public function test_admin_can_update_student_status(): void
     {
+        $this->fakeAuthAdmin();
         $student = PpdbRegistration::first();
         $this->assertNotNull($student);
 
-        $response = $this->withSession(['admin_authenticated' => true])
+        $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->patch("/ppdb/dashboard/pendaftar/{$student->id}/status", [
                 'status' => 'lulus_seleksi',
                 'catatan_panitia' => 'Selamat, Anda dinyatakan Lulus Tes Observasi Jurusan PPLG.',
@@ -211,12 +236,13 @@ class PpdbBackendTest extends TestCase
      */
     public function test_admin_can_activate_wave(): void
     {
+        $this->fakeAuthAdmin();
         $waves = PpdbWave::orderBy('nomor_gelombang')->get();
         $this->assertGreaterThanOrEqual(2, $waves->count());
 
         $waveToActivate = $waves[1]; // Gelombang 2
 
-        $response = $this->withSession(['admin_authenticated' => true])
+        $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->patch("/ppdb/dashboard/gelombang/{$waveToActivate->id}/aktifkan");
 
         $response->assertRedirect();
@@ -231,8 +257,10 @@ class PpdbBackendTest extends TestCase
      */
     public function test_admin_can_manage_announcement(): void
     {
+        $this->fakeAuthAdmin();
+
         // 1. Create
-        $response = $this->withSession(['admin_authenticated' => true])
+        $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->post('/ppdb/dashboard/pengumuman', [
                 'judul' => 'Pengumuman Uji Coba Seleksi PPDB 2027',
                 'nomor_sk' => 'SK/PPDB/PENUS/99/X/2026',
@@ -250,13 +278,13 @@ class PpdbBackendTest extends TestCase
         $this->assertTrue((bool) $announcement->is_pinned);
 
         // 2. Toggle Pin
-        $toggleResponse = $this->withSession(['admin_authenticated' => true])
+        $toggleResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->patch("/ppdb/dashboard/pengumuman/{$announcement->id}/pin");
         $toggleResponse->assertRedirect();
         $this->assertFalse((bool) $announcement->fresh()->is_pinned);
 
         // 3. Delete
-        $deleteResponse = $this->withSession(['admin_authenticated' => true])
+        $deleteResponse = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->delete("/ppdb/dashboard/pengumuman/{$announcement->id}");
         $deleteResponse->assertRedirect();
         $this->assertDatabaseMissing('ppdb_announcements', ['id' => $announcement->id]);
@@ -267,7 +295,9 @@ class PpdbBackendTest extends TestCase
      */
     public function test_admin_can_update_akomodasi_settings(): void
     {
-        $response = $this->withSession(['admin_authenticated' => true])
+        $this->fakeAuthAdmin();
+
+        $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
             ->post('/ppdb/dashboard/akomodasi', [
                 'biaya_formulir' => 175000,
                 'dsp_cash' => 6000000,
@@ -310,9 +340,8 @@ class PpdbBackendTest extends TestCase
         $this->assertNotNull($student);
 
         // Search by nomor_registrasi
-        $response = $this->get('/ppdb/cek-status?keyword=' . urlencode($student->nomor_registrasi));
+        $response = $this->get('/ppdb/cek-status?keyword='.urlencode($student->nomor_registrasi));
         $response->assertStatus(200);
         $response->assertSee($student->nama_lengkap);
     }
 }
-

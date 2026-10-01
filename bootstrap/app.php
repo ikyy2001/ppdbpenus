@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\VerifyAuthToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->encryptCookies(except: [
+            'access_token',
+        ]);
+
         $middleware->alias([
-            'admin.auth' => \App\Http\Middleware\AdminPasswordAuth::class,
+            'verify.auth' => VerifyAuthToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

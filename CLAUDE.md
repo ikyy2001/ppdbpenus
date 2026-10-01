@@ -4,18 +4,24 @@ Aplikasi Penerimaan Peserta Didik Baru (PPDB) SMK Plus Pelita Nusantara berbasis
 
 ---
 
-## 🔐 Kredensial & Autentikasi Admin
+## 🔐 Autentikasi & Otorisasi Admin (Auth Microservice)
 
-Admin Dashboard dilindungi dengan mekanisme **Password Only Authentication** melalui middleware `admin.auth`:
+Admin Dashboard dilindungi melalui middleware `verify.auth` yang terintegrasi dengan REST API Auth Microservice (`/api/user/verify`):
 
-- **URL Login Admin**: `/ppdb/login`
-- **Master Password**: `adminpenus2026`
 - **Konfigurasi .env**:
   ```env
-  ADMIN_PASSWORD=adminpenus2026
+  AUTH_SERVICE_URL=http://localhost:3000
   ```
-- **Session Key**: `admin_authenticated = true`
-- **Logout URL**: `/ppdb/logout` (Mendukung `POST` & fallback `GET`)
+- **Mekanisme Otentikasi**:
+  Token JWT `access_token` dapat dikirimkan melalui 3 saluran:
+  1. Header `Authorization: Bearer <token>`
+  2. HTTP Cookie `access_token` (dikecualikan dari enkripsi cookie Laravel)
+  3. Request Body / Query Param `access_token`
+- **Role-Based Access Control (RBAC)**:
+  Rute `/ppdb/dashboard/*` membatasi akses hanya untuk peran:
+  `verify.auth:ADMIN,KEPALA_SEKOLAH,TU,DEVELOPER`
+- **Logout**:
+  Rute `/ppdb/logout` menghapus cookie `access_token` dan melakukan redirect ke `/ppdb`.
 
 ---
 
@@ -32,13 +38,9 @@ Semua rute diawali dengan prefix `/ppdb`:
 | `GET` | `/ppdb/pengumuman` | Warta pengumuman resmi, filter kategori, lampiran download |
 | `GET` | `/ppdb/cek-status` | Pencarian status seleksi via NISN, No. Registrasi, atau Nama |
 | `GET` | `/ppdb/cetak-kartu/{id}` | Cetak resmi Kartu Tanda Peserta (Format A4 / Print-ready) |
+| `GET/POST`| `/ppdb/logout` | Menghapus cookie `access_token` dan keluar sesi |
 
-### 🔒 Rute Admin Dashboard (Dilindungi `admin.auth`)
-| Method | URL | Deskripsi |
-|---|---|---|
-| `GET` | `/ppdb/login` | Halaman login admin (Password-only) |
-| `POST` | `/ppdb/login` | Proses autentikasi password |
-| `POST` | `/ppdb/logout` | Mengakhiri sesi admin |
+### 🔒 Rute Admin Dashboard (Dilindungi `verify.auth`)
 | `GET` | `/ppdb/dashboard` | Statistik & KPI (total pendaftar, per jurusan, per jalur, status seleksi) |
 | `GET` | `/ppdb/dashboard/pendaftar` | Manajemen data pendaftar (Filter, Pencarian, Pagination) |
 | `GET` | `/ppdb/dashboard/pendaftar/export` | **Export Data Pendaftar ke format CSV** (UTF-8 BOM Excel-ready) |
@@ -100,21 +102,20 @@ Semua rute diawali dengan prefix `/ppdb`:
 
 Semua fitur diuji secara end-to-end melalui Feature Test:
 
-```bash
-php artisan test --filter=PpdbBackendTest
-```
+1. **Pengujian Routing & Auth Middleware (Mock)**:
+   ```bash
+   php artisan test --filter=PpdbRoutingAndAuthTest
+   ```
+   Mencakup pengujian rute publik, 401 saat token tidak ada / token tidak valid, 403 saat akun nonaktif, 403 saat peran/role ditolak, 200 via Bearer header, dan akses via Cookie & Body.
 
-Mencakup 13 test case komprehensif:
-- Pengujian aksesibilitas halaman publik
-- Validasi cetak kartu peserta
-- Proteksi middleware auth pada dashboard
-- Penolakan password salah
-- Penerimaan master password yang benar
-- Export CSV pendaftar
-- Proses registrasi publik lengkap
-- Update status pendaftar (lulus_seleksi, dsb.)
-- Pergantian gelombang aktif 1-click
-- CRUD, pin/unpin pengumuman & upload file
-- Update tarif keuangan & daftar rekening transfer
-- Pencarian status pendaftar via nomor registrasi / NISN
-- Logout session
+2. **Pengujian Live Auth Microservice**:
+   ```bash
+   php artisan test --filter=LiveAuthMicroserviceIntegrationTest
+   ```
+   Menguji integrasi nyata dengan Auth Microservice aktif (login nyata, akses dashboard via token & cookie, penolakan role SISWA).
+
+3. **Pengujian Keseluruhan Backend PPDB**:
+   ```bash
+   php artisan test --filter=PpdbBackendTest
+   ```
+   Mencakup aksesibilitas halaman publik, validasi cetak kartu, proteksi middleware dashboard, export CSV, pendaftaran siswa, kelola status, gelombang, pengumuman, dan tarif akomodasi.

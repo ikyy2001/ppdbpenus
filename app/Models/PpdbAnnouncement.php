@@ -40,7 +40,7 @@ class PpdbAnnouncement extends Model
      */
     public function getFileUrlAttribute(): ?string
     {
-        if (!$this->file_path) {
+        if (! $this->file_path) {
             return null;
         }
 
@@ -48,6 +48,6 @@ class PpdbAnnouncement extends Model
             return $this->file_path;
         }
 
-        return asset('storage/' . $this->file_path);
+        return asset('storage/'.$this->file_path);
     }
 }

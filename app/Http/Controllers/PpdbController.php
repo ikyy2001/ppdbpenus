@@ -80,10 +80,10 @@ class PpdbController extends Controller
 
         // Generate Nomor Registrasi Unik
         $randomSuffix = rand(10000, 99999);
-        $nomorRegistrasi = 'PPDB-2027-' . $randomSuffix;
+        $nomorRegistrasi = 'PPDB-2027-'.$randomSuffix;
 
         while (PpdbRegistration::where('nomor_registrasi', $nomorRegistrasi)->exists()) {
-            $nomorRegistrasi = 'PPDB-2027-' . rand(10000, 99999);
+            $nomorRegistrasi = 'PPDB-2027-'.rand(10000, 99999);
         }
 
         $registration = PpdbRegistration::create([
@@ -133,7 +133,7 @@ class PpdbController extends Controller
                     'jurusan' => $registration->jurusan,
                     'asalSekolah' => $registration->asal_sekolah,
                     'jalurSeleksi' => $registration->jalur_seleksi,
-                ]
+                ],
             ]);
         }
 
@@ -174,7 +174,7 @@ class PpdbController extends Controller
     public function pengumuman(Request $request)
     {
         $kategori = $request->get('kategori', 'semua');
-        
+
         $announcements = PpdbAnnouncement::published()
             ->orderByDesc('is_pinned')
             ->orderByDesc('tanggal')
@@ -182,7 +182,7 @@ class PpdbController extends Controller
 
         $pengumumanList = $announcements->map(function ($item) {
             return [
-                'id' => 'pengumuman-' . $item->id,
+                'id' => 'pengumuman-'.$item->id,
                 'dbId' => $item->id,
                 'judul' => $item->judul,
                 'nomorSk' => $item->nomor_sk ?? '000/PPDB-SMKPNB/2026',
@@ -239,6 +239,7 @@ class PpdbController extends Controller
     public function cetakKartu($id)
     {
         $pendaftar = PpdbRegistration::with('gelombang')->findOrFail($id);
+
         return view('ppdb.cetak-kartu', compact('pendaftar'));
     }
 
@@ -263,18 +264,18 @@ class PpdbController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_registrasi', 'LIKE', "%{$search}%")
-                  ->orWhere('nisn', 'LIKE', "%{$search}%")
-                  ->orWhere('asal_sekolah', 'LIKE', "%{$search}%");
+                    ->orWhere('nomor_registrasi', 'LIKE', "%{$search}%")
+                    ->orWhere('nisn', 'LIKE', "%{$search}%")
+                    ->orWhere('asal_sekolah', 'LIKE', "%{$search}%");
             });
         }
 
         $pendaftarData = $query->latest()->get();
-        $filename = 'data-pendaftar-ppdb-smk-penus-' . date('Y-m-d_His') . '.csv';
+        $filename = 'data-pendaftar-ppdb-smk-penus-'.date('Y-m-d_His').'.csv';
 
         return response()->streamDownload(function () use ($pendaftarData) {
             $handle = fopen('php://output', 'w');
-            
+
             // UTF-8 BOM untuk kompatibilitas Microsoft Excel
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
@@ -299,7 +300,7 @@ class PpdbController extends Controller
                 'Ukuran Seragam',
                 'Alamat Lengkap',
                 'Tgl Mendaftar',
-                'Catatan Panitia'
+                'Catatan Panitia',
             ]);
 
             foreach ($pendaftarData as $row) {
@@ -323,7 +324,7 @@ class PpdbController extends Controller
                     $row->ukuran_seragam ?? '-',
                     $row->alamat_lengkap ?? '-',
                     $row->created_at ? $row->created_at->format('Y-m-d H:i') : '-',
-                    $row->catatan ?? '-'
+                    $row->catatan ?? '-',
                 ]);
             }
 
@@ -340,6 +341,17 @@ class PpdbController extends Controller
      */
     public function dashboard(Request $request)
     {
+        $authUser = $request->auth_user ?? $request->input('auth_user');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'user' => $authUser,
+                ],
+            ]);
+        }
+
         $totalPendaftar = PpdbRegistration::count();
         $totalTerverifikasi = PpdbRegistration::where('status', 'terverifikasi')->count();
         $totalMenunggu = PpdbRegistration::where('status', 'menunggu_verifikasi')->count();
@@ -363,6 +375,7 @@ class PpdbController extends Controller
         $majors = $this->majors;
 
         return view('ppdb.dashboard.index', compact(
+            'authUser',
             'totalPendaftar',
             'totalTerverifikasi',
             'totalMenunggu',
@@ -395,11 +408,11 @@ class PpdbController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_lengkap', 'LIKE', "%{$search}%")
-                  ->orWhere('nama_panggilan', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_registrasi', 'LIKE', "%{$search}%")
-                  ->orWhere('nisn', 'LIKE', "%{$search}%")
-                  ->orWhere('asal_sekolah', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_kontak_pendaftar', 'LIKE', "%{$search}%");
+                    ->orWhere('nama_panggilan', 'LIKE', "%{$search}%")
+                    ->orWhere('nomor_registrasi', 'LIKE', "%{$search}%")
+                    ->orWhere('nisn', 'LIKE', "%{$search}%")
+                    ->orWhere('asal_sekolah', 'LIKE', "%{$search}%")
+                    ->orWhere('nomor_kontak_pendaftar', 'LIKE', "%{$search}%");
             });
         }
 
@@ -519,12 +532,12 @@ class PpdbController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Data pendaftar berhasil diperbarui!',
-                'data' => $pendaftar
+                'data' => $pendaftar,
             ]);
         }
 
         return redirect()->route('ppdb.dashboard.pendaftar.detail', $pendaftar->id)
-            ->with('success', 'Data pendaftar [' . $pendaftar->nomor_registrasi . '] berhasil diperbarui!');
+            ->with('success', 'Data pendaftar ['.$pendaftar->nomor_registrasi.'] berhasil diperbarui!');
     }
 
     /**
@@ -534,19 +547,19 @@ class PpdbController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $validated = $request->validate([
-            'status' => 'required|in:menunggu_verifikasi,terverifikasi,lulus_seleksi,tidak_lulus'
+            'status' => 'required|in:menunggu_verifikasi,terverifikasi,lulus_seleksi,tidak_lulus',
         ]);
 
         $registration = PpdbRegistration::findOrFail($id);
         $registration->update([
-            'status' => $validated['status']
+            'status' => $validated['status'],
         ]);
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'status' => $validated['status']]);
         }
 
-        return back()->with('success', 'Status pendaftar ' . $registration->nomor_registrasi . ' berhasil diperbarui.');
+        return back()->with('success', 'Status pendaftar '.$registration->nomor_registrasi.' berhasil diperbarui.');
     }
 
     /**
@@ -571,6 +584,7 @@ class PpdbController extends Controller
     public function gelombangIndex()
     {
         $waves = PpdbWave::withCount('pendaftar')->orderBy('tanggal_mulai', 'asc')->get();
+
         return view('ppdb.dashboard.gelombang', compact('waves'));
     }
 
@@ -643,6 +657,7 @@ class PpdbController extends Controller
         }
 
         $wave->delete();
+
         return redirect()->route('ppdb.dashboard.gelombang')->with('success', 'Gelombang berhasil dihapus.');
     }
 
@@ -662,8 +677,8 @@ class PpdbController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('judul', 'LIKE', "%{$search}%")
-                  ->orWhere('nomor_sk', 'LIKE', "%{$search}%")
-                  ->orWhere('ringkasan', 'LIKE', "%{$search}%");
+                    ->orWhere('nomor_sk', 'LIKE', "%{$search}%")
+                    ->orWhere('ringkasan', 'LIKE', "%{$search}%");
             });
         }
 
@@ -696,9 +711,9 @@ class PpdbController extends Controller
         if ($request->hasFile('file_lampiran')) {
             $file = $request->file('file_lampiran');
             $fileName = $file->getClientOriginalName();
-            $fileSize = round($file->getSize() / 1024, 1) . ' KB';
+            $fileSize = round($file->getSize() / 1024, 1).' KB';
             if ($file->getSize() > 1048576) {
-                $fileSize = round($file->getSize() / 1048576, 1) . ' MB';
+                $fileSize = round($file->getSize() / 1048576, 1).' MB';
             }
             $filePath = $file->store('pengumuman', 'public');
         }
@@ -743,15 +758,15 @@ class PpdbController extends Controller
 
         if ($request->hasFile('file_lampiran')) {
             // Hapus file lama jika ada di storage lokal
-            if ($announcement->file_path && !str_starts_with($announcement->file_path, 'http')) {
+            if ($announcement->file_path && ! str_starts_with($announcement->file_path, 'http')) {
                 Storage::disk('public')->delete($announcement->file_path);
             }
 
             $file = $request->file('file_lampiran');
             $announcement->file_nama = $file->getClientOriginalName();
-            $fileSize = round($file->getSize() / 1024, 1) . ' KB';
+            $fileSize = round($file->getSize() / 1024, 1).' KB';
             if ($file->getSize() > 1048576) {
-                $fileSize = round($file->getSize() / 1048576, 1) . ' MB';
+                $fileSize = round($file->getSize() / 1048576, 1).' MB';
             }
             $announcement->file_ukuran = $fileSize;
             $announcement->file_path = $file->store('pengumuman', 'public');
@@ -776,17 +791,18 @@ class PpdbController extends Controller
     public function pengumumanTogglePin($id)
     {
         $announcement = PpdbAnnouncement::findOrFail($id);
-        $announcement->is_pinned = !$announcement->is_pinned;
+        $announcement->is_pinned = ! $announcement->is_pinned;
         $announcement->save();
 
         $status = $announcement->is_pinned ? 'disematkan ke atas' : 'dilepas dari sematan';
+
         return back()->with('success', "Pengumuman berhasil {$status}.");
     }
 
     public function pengumumanDestroy($id)
     {
         $announcement = PpdbAnnouncement::findOrFail($id);
-        if ($announcement->file_path && !str_starts_with($announcement->file_path, 'http')) {
+        if ($announcement->file_path && ! str_starts_with($announcement->file_path, 'http')) {
             Storage::disk('public')->delete($announcement->file_path);
         }
         $announcement->delete();

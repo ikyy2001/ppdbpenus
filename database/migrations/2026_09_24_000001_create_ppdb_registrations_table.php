@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ppdb_registrations', function (Blueprint $table) {
             $table->id();
             $table->string('nomor_registrasi')->unique();
-            
+
             // Section A: Personal
             $table->string('nama_lengkap');
             $table->string('nama_panggilan');

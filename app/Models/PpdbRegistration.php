@@ -35,10 +35,11 @@ class PpdbRegistration extends Model
         $bulanMap = [
             '1' => 'Januari', '2' => 'Februari', '3' => 'Maret', '4' => 'April',
             '5' => 'Mei', '6' => 'Juni', '7' => 'Juli', '8' => 'Agustus',
-            '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            '9' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember',
         ];
 
         $bulan = $bulanMap[$this->tanggal_lahir_bulan] ?? $this->tanggal_lahir_bulan;
+
         return "{$this->tanggal_lahir_hari} {$bulan} {$this->tanggal_lahir_tahun}";
     }
 
@@ -47,7 +48,7 @@ class PpdbRegistration extends Model
      */
     public function getStatusBadgeAttribute(): array
     {
-        return match($this->status) {
+        return match ($this->status) {
             'terverifikasi' => [
                 'label' => 'Terverifikasi',
                 'bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200',

@@ -36,6 +36,7 @@ class PpdbWave extends Model
     public function getSisaKuotaAttribute(): int
     {
         $terpakai = $this->pendaftar()->count();
+
         return max(0, $this->kuota - $terpakai);
     }
 
@@ -44,8 +45,11 @@ class PpdbWave extends Model
      */
     public function getPersentaseTerisiAttribute(): int
     {
-        if ($this->kuota <= 0) return 0;
+        if ($this->kuota <= 0) {
+            return 0;
+        }
         $terpakai = $this->pendaftar()->count();
+
         return min(100, (int) round(($terpakai / $this->kuota) * 100));
     }
 
@@ -64,6 +68,7 @@ class PpdbWave extends Model
     {
         $mulai = $this->tanggal_mulai ? $this->tanggal_mulai->locale('id')->isoFormat('D MMMM Y') : '-';
         $selesai = $this->tanggal_selesai ? $this->tanggal_selesai->locale('id')->isoFormat('D MMMM Y') : '-';
+
         return "{$mulai} s.d. {$selesai}";
     }
 
@@ -72,6 +77,6 @@ class PpdbWave extends Model
      */
     public function getBiayaFormulirFormattedAttribute(): string
     {
-        return 'Rp ' . number_format($this->biaya_formulir, 0, ',', '.');
+        return 'Rp '.number_format($this->biaya_formulir, 0, ',', '.');
     }
 }

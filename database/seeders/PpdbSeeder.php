@@ -161,22 +161,22 @@ class PpdbSeeder extends Seeder
                 'nomor' => '7188-299-102',
                 'atas_nama' => 'YAYASAN PELITA NUSANTARA PPDB',
                 'badge' => 'Rekening Utama',
-                'logo' => 'BSI'
+                'logo' => 'BSI',
             ],
             [
                 'bank' => 'Bank Rakyat Indonesia (BRI)',
                 'nomor' => '0421-01-002931-50-8',
                 'atas_nama' => 'SMK PLUS PELITA NUSANTARA',
                 'badge' => 'Alternatif',
-                'logo' => 'BRI'
+                'logo' => 'BRI',
             ],
             [
                 'bank' => 'Bank Mandiri',
                 'nomor' => '133-00-2491029-1',
                 'atas_nama' => 'PPDB PELITA NUSANTARA',
                 'badge' => 'Transfer ATM / Livin',
-                'logo' => 'MANDIRI'
-            ]
+                'logo' => 'MANDIRI',
+            ],
         ];
         PpdbFeeSetting::set('daftar_rekening', $rekening, 'Daftar Rekening Bank Resmi', 'rekening');
 
@@ -427,7 +427,7 @@ class PpdbSeeder extends Seeder
                 'ukuran_seragam' => 'M',
                 'status' => 'lulus_seleksi',
                 'catatan' => 'Lulus seleksi wawancara dan tes masuk.',
-            ]
+            ],
         ];
 
         foreach ($pendaftarData as $p) {
