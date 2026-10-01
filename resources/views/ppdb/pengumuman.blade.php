@@ -3,31 +3,7 @@
 @section('title', 'Daftar Pengumuman PPDB 2027/2028 - SMK Plus Pelita Nusantara')
 
 @section('content')
-<div x-data="{
-    searchQuery: '',
-    selectedKategori: '{{ $kategori === 'semua' ? 'Semua Kategori' : $kategori }}',
-    onlyImportant: false,
-    selectedPengumuman: null,
-
-    daftarPengumuman: @json($pengumumanList ?? []),
-
-    get filteredList() {
-        return this.daftarPengumuman.filter(item => {
-            const matchCategory = this.selectedKategori === 'Semua Kategori' || item.kategori === this.selectedKategori;
-            const matchImportant = this.onlyImportant ? item.badge === 'PENTING' : true;
-            const q = this.searchQuery.trim().toLowerCase();
-            const matchQuery = q === '' ||
-                item.judul.toLowerCase().includes(q) ||
-                item.ringkasan.toLowerCase().includes(q) ||
-                item.nomorSk.toLowerCase().includes(q);
-            return matchCategory && matchImportant && matchQuery;
-        });
-    },
-
-    get featuredItem() {
-        return this.daftarPengumuman.find(item => item.isPinned) || this.daftarPengumuman[0];
-    }
-}" class="min-h-screen bg-[#F5F4F2] flex flex-col font-sans text-brand-ink antialiased">
+<div x-data="pengumumanPage()" x-cloak class="min-h-screen bg-[#F5F4F2] flex flex-col font-sans text-brand-ink antialiased">
 
     <!-- ========================================================
         2. Hero Header Card
@@ -476,3 +452,36 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function pengumumanPage() {
+    return {
+        searchQuery: '',
+        selectedKategori: @json($kategori === 'semua' ? 'Semua Kategori' : $kategori),
+        onlyImportant: false,
+        selectedPengumuman: null,
+
+        daftarPengumuman: @json($pengumumanList ?? []),
+
+        get filteredList() {
+            return this.daftarPengumuman.filter(item => {
+                const matchCategory = this.selectedKategori === 'Semua Kategori' || item.kategori === this.selectedKategori;
+                const matchImportant = this.onlyImportant ? item.badge === 'PENTING' : true;
+                const q = this.searchQuery.trim().toLowerCase();
+                const matchQuery = q === '' ||
+                    (item.judul && item.judul.toLowerCase().includes(q)) ||
+                    (item.ringkasan && item.ringkasan.toLowerCase().includes(q)) ||
+                    (item.nomorSk && item.nomorSk.toLowerCase().includes(q));
+                return matchCategory && matchImportant && matchQuery;
+            });
+        },
+
+        get featuredItem() {
+            if (!this.daftarPengumuman || this.daftarPengumuman.length === 0) return null;
+            return this.daftarPengumuman.find(item => item.isPinned) || this.daftarPengumuman[0];
+        }
+    };
+}
+</script>
+@endpush
