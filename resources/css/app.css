@@ -1,5 +1,28 @@
-@import "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap";
 @import 'tailwindcss';
+
+/*
+  Font dimuat lewat <link> di <head> tiap layout (layouts/app, layouts/admin, ppdb/cetak-kartu, dev/masuk) dengan
+  URL yang sama persis dengan landing page (lp/lpfe/index.html). Aturan font & skala di bawah ini salinan dari
+  lp/lpfe/src/styles/global.css, jadi ubah keduanya bersamaan.
+
+  Hanya dua keluarga font: Oswald (cuma tebal 700) dan Plus Jakarta Sans (400, 500, 600, 700 + italic 400).
+  Jangan pakai font-extrabold/font-black (800/900 tidak dimuat) atau font-mono; untuk angka seperti
+  NISN, nomor HP, atau nomor registrasi pakai "tabular-nums" supaya digitnya tetap sejajar.
+
+  font-display (Oswald) -> selalu "font-bold uppercase tracking-wide"
+    Judul hero (h1)      : text-3xl md:text-4xl lg:text-5xl leading-tight
+    Judul section (h2)   : text-3xl md:text-4xl leading-tight (juga angka statistik)
+    Judul kartu/bagian   : text-2xl md:text-3xl (formulir) / text-lg - text-xl (kartu kecil)
+    Nama sekolah (logo)  : text-base
+
+  font-sans (Plus Jakarta Sans) -> semua teks lainnya, termasuk judul admin yang tidak kapital
+    Eyebrow              : text-xs font-semibold uppercase tracking-[0.25em] (kelas .eyebrow)
+    Paragraf pembuka     : text-base md:text-lg leading-relaxed
+    Judul kartu          : text-lg font-semibold
+    Isi teks             : text-base leading-relaxed
+    Teks kecil           : text-sm leading-relaxed
+    Tombol & link aksi   : text-sm font-semibold
+*/
 
 @source "../views";
 @source "../**";
@@ -17,8 +40,8 @@
   --color-brand-rose: #A66B6E;
   --color-brand-white: #FFFFFF;
 
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
 
   --radius-card: 1rem;
   --radius-pill: 999px;
@@ -33,6 +56,20 @@
   --letter-spacing-wide: 0.025em;
   --letter-spacing-wider: 0.05em;
   --letter-spacing-eyebrow: 0.04em;
+
+  /* Sama dengan landing page (lp/lpfe/src/styles/global.css) */
+  --animate-fade-up: fade-up 0.5s ease-out both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 :root {
@@ -45,15 +82,13 @@
   --color-warmred: #D04A43;
   --color-rose: #A66B6E;
   --radius-card: 1rem;
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Oswald', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
     background-color: #F5F4F2;
     color: #241012;
-    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -64,9 +99,12 @@
     color: #FFFFFF;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    color: inherit;
-    font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
+  /* Dashboard admin: judul halaman & section (h1, h2 di <main>) memakai Oswald kapital seperti landing page,
+     sub judul (h3 ke bawah) tetap Plus Jakarta Sans. Di layer base supaya kelas utilitas masih bisa menimpanya. */
+  .admin-body main :where(h1, h2) {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
     letter-spacing: 0.025em;
   }
 
@@ -74,6 +112,92 @@
     outline: 2px solid #7A1018;
     outline-offset: 2px;
   }
+
+  [x-cloak] {
+    display: none !important;
+  }
+
+  /* Tailwind v4 mengembalikan kursor tombol ke default, sama seperti landing page semua yang bisa diklik diberi pointer */
+  a[href],
+  button,
+  [role="button"],
+  summary,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  label:has(input[type="checkbox"], input[type="radio"]) {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+/* ========================================================
+   Komponen halaman publik PPDB, mengikuti gaya landing page
+   ======================================================== */
+@layer components {
+  /* Eyebrow di atas judul section */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.25em] text-brand-darkred;
+  }
+
+  /* Tombol utama: satu-satunya yang diberi warna penuh, sama seperti tombol "Daftar PPDB" di navbar landing page */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-brand-signal to-brand-darkred px-7 py-3 text-sm font-semibold text-white shadow-md shadow-brand-darkred/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brand-darkred/30 active:scale-[0.98] disabled:translate-y-0 disabled:opacity-50 disabled:shadow-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand-ink/15 px-7 py-3 text-sm font-semibold text-brand-ink transition-colors duration-200 hover:border-brand-darkred hover:text-brand-darkred active:scale-[0.98];
+  }
+
+  .ppdb-label {
+    @apply mb-2 block text-sm font-semibold text-brand-ink;
+  }
+
+  .ppdb-input {
+    @apply w-full rounded-full border border-transparent bg-brand-softmist px-5 py-3 text-sm text-brand-ink transition-colors duration-200 placeholder:text-brand-ink/40 hover:border-brand-ink/15 focus:border-brand-darkred focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-darkred/10;
+  }
+
+  /* Ditaruh setelah .ppdb-input supaya menimpa warna garisnya */
+  .ppdb-input-error {
+    @apply border-brand-signal bg-brand-signal/5 hover:border-brand-signal;
+  }
+
+  .ppdb-hint {
+    @apply mt-1.5 text-xs leading-relaxed text-brand-ink/60;
+  }
+
+  .ppdb-error {
+    @apply mt-1.5 text-xs font-semibold text-brand-signal;
+  }
+
+  /* Pilihan ganda berbentuk kartu: <label class="choice"><input class="sr-only" type="checkbox"><span class="choice-box">..</span>..</label> */
+  .choice {
+    @apply flex select-none items-center gap-3 rounded-card bg-brand-softmist px-4 py-3 text-sm font-medium text-brand-ink transition-colors duration-200 hover:bg-brand-mist has-checked:bg-brand-darkred/10 has-checked:text-brand-darkred has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-darkred;
+  }
+
+  .choice-box {
+    @apply grid h-5 w-5 shrink-0 place-items-center rounded-md border-2 border-brand-ink/25 bg-white text-transparent transition-colors;
+  }
+
+  .choice:has(:checked) .choice-box {
+    @apply border-brand-darkred bg-brand-darkred text-white;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+}
+
+/* Daftar pilihan <x-dropdown>: scrollbar tipis abu-abu */
+.dd-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-mist) transparent;
 }
 
 .max-w-canvas {
@@ -114,73 +238,6 @@
   box-shadow: 0 14px 36px -6px rgba(36, 16, 18, 0.20);
 }
 
-.font-editorial-h1 {
-  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(2.5rem, 5.5vw, 4rem);
-  font-weight: 700;
-  line-height: 1.0;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-}
-
-.font-editorial-h2 {
-  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-}
-
-.font-editorial-h3 {
-  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-}
-
-.font-editorial-eyebrow {
-  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  line-height: 1.0;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.font-editorial-body {
-  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  font-size: 1rem;
-  font-weight: 400;
-  line-height: 1.55;
-}
-
-.ghost-typography {
-  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(4.5rem, 10vw, 8rem);
-  font-weight: 700;
-  line-height: 0.85;
-  letter-spacing: 0.025em;
-  color: rgba(122, 16, 24, 0.07);
-  user-select: none;
-  pointer-events: none;
-  text-transform: uppercase;
-}
-
-.ghost-typography-white {
-  font-family: 'Oswald', ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(4.5rem, 10vw, 8rem);
-  font-weight: 700;
-  line-height: 0.85;
-  letter-spacing: 0.025em;
-  color: rgba(221, 221, 221, 0.06);
-  user-select: none;
-  pointer-events: none;
-  text-transform: uppercase;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -218,4 +275,139 @@
   .no-print {
     display: none !important;
   }
+}
+
+/* ========================================================
+   Editorial Markdown Renderer Styles
+   ======================================================== */
+.markdown-content {
+  font-family: var(--font-sans);
+  color: #241012;
+  line-height: 1.65;
+  font-size: 0.875rem;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: #7A1018;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.25;
+}
+
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child,
+.markdown-content h4:first-child {
+  margin-top: 0;
+}
+
+.markdown-content h1 { font-size: 1.35rem; }
+.markdown-content h2 { font-size: 1.2rem; }
+.markdown-content h3 { font-size: 1.05rem; }
+.markdown-content h4 { font-size: 0.95rem; }
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+  color: rgba(36, 16, 18, 0.85);
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content strong {
+  font-weight: 700;
+  color: #241012;
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+.markdown-content ul {
+  list-style-type: disc;
+  padding-left: 1.35rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+  padding-left: 1.35rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.markdown-content li {
+  color: rgba(36, 16, 18, 0.85);
+  line-height: 1.6;
+}
+
+.markdown-content li > ul {
+  list-style-type: circle;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding-left: 1.1rem;
+}
+
+.markdown-content li > ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding-left: 1.1rem;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid #7A1018;
+  padding-left: 0.875rem;
+  font-style: italic;
+  color: rgba(36, 16, 18, 0.8);
+  background-color: rgba(122, 16, 24, 0.04);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 0.85rem 0;
+}
+
+.markdown-content a {
+  color: #7A1018;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+.markdown-content a:hover {
+  color: #5C0B12;
+}
+
+.markdown-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.825em;
+  background-color: #F5F4F2;
+  color: #7A1018;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(36, 16, 18, 0.1);
+}
+
+.markdown-content hr {
+  border: 0;
+  border-top: 1px solid rgba(36, 16, 18, 0.12);
+  margin: 1.25rem 0;
 }

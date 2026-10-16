@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class PpdbAnnouncement extends Model
 {
@@ -49,5 +50,16 @@ class PpdbAnnouncement extends Model
         }
 
         return asset('storage/'.$this->file_path);
+    }
+
+    /**
+     * Render isi_lengkap sebagai format HTML dari Markdown
+     */
+    public function getIsiLengkapHtmlAttribute(): string
+    {
+        return Str::markdown($this->isi_lengkap ?? '', [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
     }
 }

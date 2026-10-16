@@ -32,7 +32,7 @@
                 </span>
                 <span class="text-xs text-slate-500 font-medium">T.A 2027/2028</span>
             </div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">Daftar Gelombang Penerimaan Siswa Baru</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 mt-1">Daftar Gelombang Penerimaan Siswa Baru</h2>
             <p class="text-xs text-slate-500 mt-0.5">Atur periode pembukaan, kuota pendaftaran, dan biaya formulir yang berlaku.</p>
         </div>
 
@@ -40,7 +40,7 @@
             <button 
                 type="button" 
                 @click="createModalOpen = true"
-                class="px-4 py-2.5 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
+                class="px-4 py-2.5 rounded-xl bg-[#7A1018] hover:bg-[#5C0B12] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -56,7 +56,7 @@
             
             @if($wave->is_active)
             <div class="absolute top-0 right-0">
-                <div class="bg-emerald-500 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs flex items-center gap-1">
+                <div class="bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-xl shadow-xs flex items-center gap-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                     SEDANG AKTIF
                 </div>
@@ -69,7 +69,7 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                         {{ $wave->tahun_ajaran }}
                     </span>
-                    <h3 class="text-lg font-extrabold text-slate-900">{{ $wave->nama }}</h3>
+                    <h3 class="text-lg font-bold text-slate-900">{{ $wave->nama }}</h3>
                 </div>
 
                 <!-- Description -->
@@ -85,7 +85,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Biaya Formulir:</span>
-                        <span class="font-extrabold text-[#8B1D24]">{{ $wave->biaya_formulir_formatted }}</span>
+                        <span class="font-bold text-[#7A1018]">{{ $wave->biaya_formulir_formatted }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500">Pendaftar Masuk:</span>
@@ -95,7 +95,7 @@
                     <!-- Quota Progress Bar -->
                     <div class="pt-1">
                         <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                            <div class="bg-[#8B1D24] h-full rounded-full transition-all duration-500" 
+                            <div class="bg-[#7A1018] h-full rounded-full transition-all duration-500" 
                                  style="width: {{ $wave->persentase_terisi }}%">
                             </div>
                         </div>
@@ -219,7 +219,7 @@
 
                 <div class="pt-2 flex items-center justify-end gap-2">
                     <button type="button" @click="createModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-bold">Simpan Gelombang</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#7A1018] hover:bg-[#5C0B12] text-white text-xs font-bold">Simpan Gelombang</button>
                 </div>
             </form>
         </div>
@@ -277,7 +277,7 @@
 
                 <div class="pt-2 flex items-center justify-end gap-2">
                     <button type="button" @click="editModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Batal</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-bold">Simpan Perubahan</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#7A1018] hover:bg-[#5C0B12] text-white text-xs font-bold">Simpan Perubahan</button>
                 </div>
             </form>
         </div>

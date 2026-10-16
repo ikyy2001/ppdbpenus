@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Database\Seeders\PpdbSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -176,9 +177,9 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test token extraction from cookie and body.
+     * Test token extraction from cookie succeeds.
      */
-    public function test_dashboard_accessible_via_cookie_and_body(): void
+    public function test_dashboard_accessible_via_cookie(): void
     {
         Http::fake([
             '*/api/user/verify' => Http::response([
@@ -194,14 +195,64 @@ class PpdbRoutingAndAuthTest extends TestCase
             ], 200),
         ]);
 
-        // Via Cookie
         $resCookie = $this->withCredentials()
             ->withUnencryptedCookie('access_token', 'cookie_token')
             ->getJson('/ppdb/dashboard');
         $resCookie->assertStatus(200);
+    }
 
-        // Via Request Query/Body
-        $resBody = $this->getJson('/ppdb/dashboard?access_token=body_token');
-        $resBody->assertStatus(200);
+    /**
+     * SEC-05: Test token passed via URL query parameter is rejected with 401.
+     */
+    public function test_dashboard_rejects_query_param_token(): void
+    {
+        $resQuery = $this->getJson('/ppdb/dashboard?access_token=query_token');
+        $resQuery->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Token otentikasi tidak ditemukan',
+            ]);
+    }
+
+    /**
+     * SEC-05 & SEC-07: Test unauthenticated browser request redirects to home with flash warning.
+     */
+    public function test_unauthenticated_browser_request_redirects_to_index_with_warning(): void
+    {
+        // Akses langsung melalui browser web (tanpa Accept: application/json)
+        $response = $this->get('/ppdb/dashboard');
+
+        $response->assertRedirect(route('ppdb.index'));
+        $response->assertSessionHas('warning', 'Token otentikasi tidak ditemukan');
+    }
+
+    /**
+     * SEC-05: Test external auth microservice outage masks exception details.
+     */
+    public function test_auth_service_outage_masks_exception_details(): void
+    {
+        Http::fake([
+            '*/api/user/verify' => fn () => throw new ConnectionException('cURL error 7: Failed to connect to localhost port 3000'),
+        ]);
+
+        // JSON Request: Wajib mengembalikan 503 dengan pesan aman tanpa bocoran networking
+        $resJson = $this->withHeader('Authorization', 'Bearer valid_token')
+            ->getJson('/ppdb/dashboard');
+
+        $resJson->assertStatus(503)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Layanan otentikasi sedang tidak tersedia. Silakan coba beberapa saat lagi.',
+            ]);
+
+        $this->assertStringNotContainsString('port 3000', $resJson->getContent());
+        $this->assertStringNotContainsString('cURL error 7', $resJson->getContent());
+
+        // Browser Request: Wajib redirect ke home dengan warning
+        $resBrowser = $this->withHeader('Authorization', 'Bearer valid_token')
+            ->get('/ppdb/dashboard');
+
+        $resBrowser->assertRedirect(route('ppdb.index'));
+        $resBrowser->assertSessionHas('warning', 'Layanan otentikasi sedang tidak tersedia. Silakan coba beberapa saat lagi.');
     }
 }

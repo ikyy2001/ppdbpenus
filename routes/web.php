@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\PpdbController;
+use App\Http\Controllers\DevAuthController;
+use App\Http\Controllers\StaticAssetController;
+use App\Support\DevAuth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,13 +27,33 @@ Route::get('/', function () {
 
 // Primary PPDB Routes
 Route::prefix('ppdb')->group(function () {
+    // 0. Static Asset Handlers (Kompatibilitas Reverse Proxy Path-Based)
+    Route::get('/assets/{path}', [StaticAssetController::class, 'serveAssets'])->where('path', '.*')->name('ppdb.static.assets');
+    Route::get('/build/{path}', [StaticAssetController::class, 'serveBuild'])->where('path', '.*')->name('ppdb.static.build');
+    Route::get('/storage/{path}', [StaticAssetController::class, 'serveStorage'])->where('path', '.*')->name('ppdb.static.storage');
+    Route::get('/images/{path}', [StaticAssetController::class, 'serveImages'])->where('path', '.*')->name('ppdb.static.images');
+    Route::get('/uploads/{path}', [StaticAssetController::class, 'serveUploads'])->where('path', '.*')->name('ppdb.static.uploads');
+
+    // Login uji coba lokal tanpa auth service: hanya terdaftar saat APP_ENV=local & AUTH_DEV_BYPASS=true
+    if (DevAuth::configured()) {
+        Route::get('/dev/masuk', [DevAuthController::class, 'index'])->name('ppdb.dev.login');
+        Route::get('/dev/masuk/{role}', [DevAuthController::class, 'switch'])->name('ppdb.dev.login.as');
+    }
+
     // 1. Public Routes
     Route::get('/', [PpdbController::class, 'index'])->name('ppdb.index');
-    Route::post('/daftar', [PpdbController::class, 'store'])->name('ppdb.store');
+    Route::post('/daftar', [PpdbController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('ppdb.store');
     Route::get('/akomodasi', [PpdbController::class, 'akomodasi'])->name('ppdb.akomodasi');
     Route::get('/pengumuman', [PpdbController::class, 'pengumuman'])->name('ppdb.pengumuman');
-    Route::get('/cek-status', [PpdbController::class, 'cekStatus'])->name('ppdb.cek-status');
-    Route::get('/cetak-kartu/{id}', [PpdbController::class, 'cetakKartu'])->name('ppdb.cetak-kartu');
+    Route::match(['GET', 'POST'], '/cek-status', [PpdbController::class, 'cekStatus'])
+        ->middleware('throttle:20,1')
+        ->name('ppdb.cek-status');
+    Route::get('/cetak-kartu/{uuid}', [PpdbController::class, 'cetakKartu'])
+        ->where('uuid', '[0-9a-fA-F-]{36}')
+        ->middleware('throttle:60,1')
+        ->name('ppdb.cetak-kartu');
     Route::match(['GET', 'POST'], '/logout', function () {
         return redirect('/ppdb')->withoutCookie('access_token');
     })->name('ppdb.logout');
@@ -78,4 +101,4 @@ Route::get('/cek-status', fn () => redirect('/ppdb/cek-status'));
 Route::get('/dashboard', fn () => redirect('/ppdb/dashboard'));
 Route::get('/dashboard/pendaftar', fn () => redirect('/ppdb/dashboard/pendaftar'));
 Route::get('/dashboard/pendaftar/{id}', fn ($id) => redirect('/ppdb/dashboard/pendaftar/'.$id));
-Route::post('/daftar', [PpdbController::class, 'store']);
+Route::post('/daftar', [PpdbController::class, 'store'])->middleware('throttle:6,1');

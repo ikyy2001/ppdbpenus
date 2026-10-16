@@ -1,498 +1,325 @@
 @extends('layouts.admin')
 
 @section('title', 'Dashboard Utama PPDB - SMK Plus Pelita Nusantara')
-@section('page_title', 'Dashboard PPDB')
+
+@php
+    $userName = $authUser['nama_lengkap'] ?? $authUser['username'] ?? 'Panitia PPDB';
+    $firstName = \Illuminate\Support\Str::of($userName)->explode(' ')->first();
+
+    $hour = (int) now()->format('H');
+    $greet = match (true) {
+        $hour < 11 => 'Selamat pagi',
+        $hour < 15 => 'Selamat siang',
+        $hour < 18 => 'Selamat sore',
+        default => 'Selamat malam',
+    };
+
+    $kuotaPerJurusan = 72; // 2 rombel x 36 siswa per jurusan
+    $verifiedRate = $totalPendaftar > 0 ? (int) round(($totalPendaftar - $totalMenunggu) / $totalPendaftar * 100) : 0;
+    $activeKuota = $activeWave?->kuota ?? 0;
+    $activeFill = $activeKuota > 0 ? min(100, (int) round(($activeWave->pendaftar_count ?? 0) / $activeKuota * 100)) : 0;
+
+    $statusRows = [
+        ['key' => 'menunggu_verifikasi', 'label' => 'Menunggu Verifikasi', 'total' => $totalMenunggu, 'tone' => 'bg-brand-rose'],
+        ['key' => 'terverifikasi', 'label' => 'Terverifikasi', 'total' => $totalTerverifikasi, 'tone' => 'bg-brand-warmred'],
+        ['key' => 'lulus_seleksi', 'label' => 'Lulus Seleksi', 'total' => $totalLulus, 'tone' => 'bg-brand-darkred'],
+        ['key' => 'tidak_lulus', 'label' => 'Tidak Lulus', 'total' => $totalTidakLulus, 'tone' => 'bg-brand-ink/20'],
+    ];
+
+    $kpis = [
+        ['label' => 'Total Pendaftar', 'value' => $totalPendaftar, 'icon' => 'users', 'note' => '+' . $todayCount . ' hari ini', 'href' => route('ppdb.dashboard.pendaftar')],
+        ['label' => 'Menunggu Verifikasi', 'value' => $totalMenunggu, 'icon' => 'hourglass', 'note' => 'Berkas perlu dicek panitia', 'href' => route('ppdb.dashboard.pendaftar', ['status' => 'menunggu_verifikasi']), 'alert' => $totalMenunggu > 0],
+        ['label' => 'Terverifikasi', 'value' => $totalTerverifikasi, 'icon' => 'shield-check', 'note' => $verifiedRate . '% berkas sudah diproses', 'href' => route('ppdb.dashboard.pendaftar', ['status' => 'terverifikasi'])],
+        ['label' => 'Lulus Seleksi', 'value' => $totalLulus, 'icon' => 'award', 'note' => 'Siap daftar ulang', 'href' => route('ppdb.dashboard.pendaftar', ['status' => 'lulus_seleksi'])],
+    ];
+
+    $trendMax = max(1, collect($trend)->max('total'));
+    $trendTotal = collect($trend)->sum('total');
+    $genderL = (int) ($genderCounts['L'] ?? 0);
+    $genderP = (int) ($genderCounts['P'] ?? 0);
+
+    $card = 'bg-white rounded-card border border-brand-ink/10 shadow-[0_4px_20px_-4px_rgb(36_16_18_/_0.08)]';
+    $tabs = [
+        ['label' => 'Overview', 'route' => 'ppdb.dashboard'],
+        ['label' => 'Data Pendaftar', 'route' => 'ppdb.dashboard.pendaftar'],
+        ['label' => 'Gelombang', 'route' => 'ppdb.dashboard.gelombang'],
+        ['label' => 'Pengumuman', 'route' => 'ppdb.dashboard.pengumuman'],
+        ['label' => 'Biaya & Akomodasi', 'route' => 'ppdb.dashboard.akomodasi'],
+    ];
+@endphp
 
 @section('content')
-<div class="space-y-5">
+<div class="space-y-8">
 
-    <!-- SUB-NAVIGATION BAR & ACTION CTAS -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-3.5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <!-- Sub-tabs -->
-        <div class="flex items-center flex-wrap gap-1.5">
-            <a href="{{ route('ppdb.dashboard') }}" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E293B] text-white shadow-sm transition-all">
-                Overview
-            </a>
-            <a href="{{ route('ppdb.dashboard.pendaftar') }}" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Data Pendaftar
-            </a>
-            <a href="{{ route('ppdb.dashboard.gelombang') }}" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Gelombang PPDB
-            </a>
-            <a href="{{ route('ppdb.dashboard.pengumuman') }}" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Pengumuman
-            </a>
-            <a href="{{ route('ppdb.dashboard.akomodasi') }}" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Biaya & Akomodasi
-            </a>
-            <a href="{{ route('ppdb.cek-status') }}" target="_blank" 
-               class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors">
-                Cek NISN ↗
-            </a>
+    {{-- SUB NAVIGASI --}}
+    <nav class="flex flex-wrap items-center justify-between gap-3 print:hidden" aria-label="Sub menu PPDB">
+        <div class="flex flex-wrap gap-1.5">
+            @foreach($tabs as $tab)
+                <a href="{{ route($tab['route']) }}" class="px-4 h-9 inline-flex items-center rounded-full text-xs font-semibold transition-colors {{ request()->routeIs($tab['route']) ? 'bg-brand-ink text-white' : 'bg-white border border-brand-ink/10 text-brand-ink hover:bg-brand-softmist' }}">{{ $tab['label'] }}</a>
+            @endforeach
         </div>
-
-        <!-- Action CTAs -->
-        <div class="flex items-center gap-2.5">
-            <button 
-                type="button" 
-                onclick="window.print()" 
-                class="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5 text-[#8B1D24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                </svg>
-                <span>Cetak Rekap</span>
+        <div class="flex gap-2">
+            <a href="{{ route('ppdb.dashboard.pendaftar.export') }}" class="h-9 px-4 rounded-full bg-white border border-brand-ink/15 text-xs font-semibold text-brand-ink hover:bg-brand-softmist inline-flex items-center gap-1.5 transition-colors">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-brand-darkred"></i> Export CSV
+            </a>
+            <button type="button" onclick="window.print()" class="h-9 px-4 rounded-full bg-white border border-brand-ink/15 text-xs font-semibold text-brand-ink hover:bg-brand-softmist inline-flex items-center gap-1.5 transition-colors cursor-pointer">
+                <i data-lucide="printer" class="w-3.5 h-3.5 text-brand-darkred"></i> Cetak Rekap
             </button>
-
-            <a href="{{ route('ppdb.index') }}" target="_blank"
-               class="px-4 py-2 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>Tambah Pendaftar</span>
-            </a>
         </div>
-    </div>
+    </nav>
 
-    <!-- WELCOME HERO BANNER (Matches Hero Greeting & Progress Box in Reference Image) -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-sm relative overflow-hidden">
-        <!-- Subtle decorative glow -->
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-red-50/60 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-slate-100/60 rounded-full blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <!-- Left Info & Greeting -->
-            <div class="max-w-2xl">
-                <div class="flex items-center gap-2.5 mb-2.5">
-                    <span class="px-3 py-1 rounded-full bg-[#1E293B] text-white text-xs font-semibold shadow-xs">
-                        Panitia PPDB 2027
-                    </span>
-                    <span class="text-xs font-medium text-slate-500">
-                        SMK Plus Pelita Nusantara Bogor
-                    </span>
-                </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">
-                    Halo, Panitia PPDB 👋
+    {{-- HERO --}}
+    <section class="{{ $card }} relative p-6 sm:p-8 overflow-hidden">
+        <div class="absolute -right-20 -top-24 w-72 h-72 rounded-full bg-brand-darkred/[0.04] pointer-events-none"></div>
+        <div class="relative grid lg:grid-cols-[1fr_340px] gap-8 items-center">
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-[0.14em] text-brand-darkred">Panitia PPDB · T.A {{ $activeWave?->tahun_ajaran ?? '2027/2028' }}</p>
+                <h1 class="mt-3 font-display text-3xl sm:text-4xl lg:text-[44px] font-bold uppercase tracking-wide text-brand-ink leading-[1.1]">
+                    {{ $greet }}, <x-sketch.underline size="md">{{ $firstName }}</x-sketch.underline>
                 </h1>
-                <p class="text-xs sm:text-sm text-[#64748B] mt-2 leading-relaxed">
-                    Selamat datang di panel kontrol PPDB. Anda memiliki <span class="font-bold text-[#8B1D24]">{{ $totalMenunggu }} berkas pendaftar</span> yang menunggu konfirmasi verifikasi dokumen dan kelulusan.
+                <p class="mt-5 text-sm sm:text-[15px] text-brand-ink/70 leading-relaxed max-w-2xl">
+                    Sudah ada <b class="text-brand-ink">{{ number_format($totalPendaftar) }} calon siswa</b> yang mendaftar
+                    @if($todayCount > 0)(<b class="text-brand-ink">{{ $todayCount }}</b> hari ini)@endif.
+                    @if($totalMenunggu > 0)
+                        <b class="text-brand-darkred">{{ $totalMenunggu }} berkas</b> masih menunggu verifikasi panitia.
+                    @else
+                        Semua berkas sudah diverifikasi.
+                    @endif
                 </p>
-            </div>
-
-            <!-- Right Progress Widget (Matches Kelengkapan Profil card in Reference Image) -->
-            <div class="bg-slate-50/90 border border-slate-200/70 rounded-2xl p-4 sm:p-5 sm:min-w-[280px] shadow-2xs flex flex-col justify-between">
-                <div class="flex items-center justify-between gap-3 mb-2">
-                    <span class="text-xs font-semibold text-slate-700">Rasio Verifikasi Berkas</span>
-                    <span class="text-sm font-extrabold text-[#0F172A]">
-                        {{ $totalPendaftar > 0 ? round(($totalTerverifikasi / $totalPendaftar) * 100) : 0 }}%
-                    </span>
-                </div>
-                
-                <!-- Thin Maroon Progress Bar with Rounded Ends -->
-                <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden my-1">
-                    <div class="bg-[#8B1D24] h-full rounded-full transition-all duration-500" 
-                         style="width: {{ $totalPendaftar > 0 ? min(100, round(($totalTerverifikasi / $totalPendaftar) * 100)) : 0 }}%">
-                    </div>
-                </div>
-
-                <div class="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                    <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="text-xs font-bold text-[#8B1D24] hover:text-[#72151B] inline-flex items-center gap-1 transition-colors">
-                        <span>Kelola pendaftar sekarang</span>
-                        <span>&rarr;</span>
+                <div class="mt-6 flex flex-wrap gap-2.5">
+                    <a href="{{ route('ppdb.dashboard.pendaftar', ['status' => 'menunggu_verifikasi']) }}" class="inline-flex items-center gap-2 h-10 px-5 rounded-full bg-gradient-to-r from-brand-signal to-brand-darkred text-white text-sm font-semibold shadow-[0_4px_14px_0_rgba(122,16,24,0.25)] hover:-translate-y-px transition-transform">
+                        Verifikasi Berkas <x-sketch.arrow class="w-6 h-3" />
                     </a>
-                    <span class="text-[10px] font-mono text-slate-400">{{ $totalTerverifikasi }}/{{ $totalPendaftar }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4 METRIC COUNTERS GRID (Directly extracting the design from the 4 cards in Reference Image) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        
-        <!-- 1. Total Pendaftar (Matches Card 1: Lamaran Aktif style with mini bar chart) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Total Pendaftar
-                </span>
-                <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                </div>
-            </div>
-            
-            <div class="my-2">
-                <div class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-                    {{ $totalPendaftar }}
-                </div>
-                <div class="text-xs text-slate-500 mt-1">Calon siswa T.A 2027/2028</div>
-            </div>
-
-            <!-- Bottom Row: Trend and Mini Bar Chart -->
-            <div class="flex items-end justify-between pt-3 border-t border-slate-100">
-                <span class="text-xs font-semibold text-emerald-600 flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                    </svg>
-                    <span>+{{ $todayCount }} hari ini</span>
-                </span>
-                
-                <!-- Mini Bar Representation (Slate/Navy) -->
-                <div class="flex items-end gap-1 h-6">
-                    <span class="w-1.5 bg-slate-200 rounded-full h-2.5"></span>
-                    <span class="w-1.5 bg-slate-300 rounded-full h-4"></span>
-                    <span class="w-1.5 bg-slate-300 rounded-full h-3"></span>
-                    <span class="w-1.5 bg-slate-400 rounded-full h-5"></span>
-                    <span class="w-1.5 bg-[#1E293B] rounded-full h-6"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. Menunggu Verifikasi (Matches Card 2: Panggilan Interview style with Maroon Accent) -->
-        <div class="bg-white rounded-2xl border border-red-100 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-[#8B1D24]">
-                    Menunggu Verifikasi
-                </span>
-                <div class="w-9 h-9 rounded-xl bg-[#8B1D24] text-white flex items-center justify-center shadow-xs">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+                    <a href="{{ route('ppdb.dashboard.pengumuman') }}" class="inline-flex items-center gap-2 h-10 px-5 rounded-full border border-brand-ink/15 bg-white text-brand-ink text-sm font-semibold hover:bg-brand-softmist transition-colors">
+                        <i data-lucide="megaphone" class="w-4 h-4"></i> Buat Pengumuman
+                    </a>
                 </div>
             </div>
 
-            <div class="my-2">
-                <div class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-                    {{ $totalMenunggu }}
+            {{-- Gelombang aktif --}}
+            <div class="relative rounded-card bg-[#F5F4F2] p-5">
+                <x-sketch.corner class="-left-2 -top-2 w-20 h-8" />
+                <x-sketch.corner :delay="350" class="-right-2 -bottom-2 rotate-180 w-20 h-8" />
+                <div class="flex items-center justify-between gap-2">
+                    <h2 class="font-display font-bold text-lg uppercase tracking-wide text-brand-ink">Gelombang Aktif</h2>
+                    @if($activeWave)
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Dibuka</span>
+                    @endif
                 </div>
-                <div class="text-xs text-slate-500 mt-1">Perlu review panitia PPDB</div>
-            </div>
-
-            <div class="flex items-center justify-between pt-3 border-t border-red-50">
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-                    Perlu Tindakan
-                </span>
-                <a href="{{ route('ppdb.dashboard.pendaftar', ['status' => 'menunggu_verifikasi']) }}" 
-                   class="text-xs font-bold text-[#8B1D24] hover:underline flex items-center gap-0.5">
-                    <span>Review</span>
-                    <span>&rarr;</span>
-                </a>
-            </div>
-        </div>
-
-        <!-- 3. Berkas Terverifikasi (Matches Card 3: CV Health Score style with Dual Progress Bar) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Berkas Terverifikasi
-                </span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-
-            <div class="my-2">
-                <div class="flex items-baseline gap-1">
-                    <span class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-                        {{ $totalTerverifikasi }}
-                    </span>
-                    <span class="text-sm font-bold text-slate-400">/{{ $totalPendaftar }}</span>
-                </div>
-                <!-- Dual Color Progress Bar (Navy to Maroon) -->
-                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
-                    <div class="bg-gradient-to-r from-[#1E293B] to-[#8B1D24] h-full rounded-full transition-all duration-300"
-                         style="width: {{ $totalPendaftar > 0 ? round(($totalTerverifikasi / $totalPendaftar) * 100) : 0 }}%">
+                @if($activeWave)
+                    <p class="mt-1 text-sm font-semibold text-brand-ink">{{ $activeWave->nama }}</p>
+                    <p class="text-xs text-brand-ink/60">{{ $activeWave->periode_formatted }}</p>
+                    <div class="mt-4 flex items-end justify-between">
+                        <span class="font-display text-4xl font-bold text-brand-ink leading-none">{{ $activeWave->pendaftar_count }}</span>
+                        <span class="text-xs text-brand-ink/60">dari kuota {{ number_format($activeKuota) }}</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
-                <span class="text-emerald-700 font-semibold flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Dokumen Lengkap
-                </span>
-                <span class="font-mono font-bold text-slate-700">
-                    {{ $totalPendaftar > 0 ? round(($totalTerverifikasi / $totalPendaftar) * 100) : 0 }}%
-                </span>
+                    <div class="mt-2 h-2.5 rounded-full bg-white overflow-hidden">
+                        <div class="h-full rounded-full bg-brand-darkred" style="width: {{ $activeFill }}%"></div>
+                    </div>
+                    <p class="mt-1.5 text-[11px] text-brand-ink/50">{{ $activeFill }}% kuota terisi · formulir {{ $activeWave->biaya_formulir_formatted }}</p>
+                @else
+                    <p class="mt-2 text-sm text-brand-ink/70">Belum ada gelombang yang aktif. Formulir publik tidak bisa dipakai sampai satu gelombang diaktifkan.</p>
+                    <a href="{{ route('ppdb.dashboard.gelombang') }}" class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand-darkred hover:underline">Atur gelombang <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i></a>
+                @endif
             </div>
         </div>
+    </section>
 
-        <!-- 4. Lulus Seleksi (Matches Card 4: Profil Dilihat Mitra style with Maroon Mini Chart) -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Lulus Seleksi
-                </span>
-                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138z"></path>
-                    </svg>
+    {{-- KPI --}}
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" aria-label="Ringkasan angka PPDB">
+        @foreach($kpis as $kpi)
+            <a href="{{ $kpi['href'] }}" class="{{ $card }} group p-5 hover:border-brand-darkred/25 hover:shadow-softpill transition-all {{ !empty($kpi['alert']) ? 'ring-1 ring-brand-darkred/20' : '' }}">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider {{ !empty($kpi['alert']) ? 'text-brand-darkred' : 'text-brand-ink/60' }}">{{ $kpi['label'] }}</span>
+                    <span class="w-9 h-9 rounded-full grid place-items-center transition-colors {{ !empty($kpi['alert']) ? 'bg-brand-darkred text-white' : 'bg-brand-darkred/[0.07] text-brand-darkred group-hover:bg-brand-darkred group-hover:text-white' }}">
+                        <i data-lucide="{{ $kpi['icon'] }}" class="w-4 h-4"></i>
+                    </span>
                 </div>
-            </div>
+                <div class="mt-3 font-display text-5xl font-bold text-brand-ink leading-none">{{ number_format($kpi['value']) }}</div>
+                <div class="mt-3 pt-3 border-t border-brand-ink/10 text-xs text-brand-ink/60">{{ $kpi['note'] }}</div>
+            </a>
+        @endforeach
+    </section>
 
-            <div class="my-2">
-                <div class="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-                    {{ $totalLulus }}
-                </div>
-                <div class="text-xs text-slate-500 mt-1">Siap proses daftar ulang</div>
-            </div>
-
-            <!-- Bottom Row: Pill badge and Maroon mini chart -->
-            <div class="flex items-end justify-between pt-3 border-t border-slate-100">
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                    Daftar Ulang
-                </span>
-
-                <!-- Mini Bar Representation (Maroon Tones from Reference) -->
-                <div class="flex items-end gap-1 h-6">
-                    <span class="w-1.5 bg-red-200 rounded-full h-2"></span>
-                    <span class="w-1.5 bg-red-300 rounded-full h-3"></span>
-                    <span class="w-1.5 bg-red-400 rounded-full h-4"></span>
-                    <span class="w-1.5 bg-[#8B1D24]/80 rounded-full h-5"></span>
-                    <span class="w-1.5 bg-[#8B1D24] rounded-full h-6"></span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- QUICK SEARCH & FILTER BAR -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-3 sm:p-4 shadow-sm">
-        <form action="{{ route('ppdb.dashboard.pendaftar') }}" method="GET" class="flex flex-col sm:flex-row gap-2.5">
-            <div class="flex-1 relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </div>
-                <input 
-                    type="text" 
-                    name="search" 
-                    placeholder="Cari nama calon siswa, no registrasi, NISN, atau asal sekolah..."
-                    class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#F1F5F9] border-0 text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-300 focus:outline-none transition-all"
-                />
-            </div>
-
-            <select 
-                name="jurusan" 
-                class="px-4 py-2.5 rounded-xl bg-[#F1F5F9] border-0 text-xs text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-slate-300 focus:outline-none cursor-pointer">
-                <option value="">Semua Jurusan</option>
-                @foreach ($majors as $fullName => $shortName)
-                    <option value="{{ $fullName }}">{{ $shortName }}</option>
-                @endforeach
-            </select>
-
-            <select 
-                name="status" 
-                class="px-4 py-2.5 rounded-xl bg-[#F1F5F9] border-0 text-xs text-slate-700 font-medium focus:bg-white focus:ring-2 focus:ring-slate-300 focus:outline-none cursor-pointer">
-                <option value="">Semua Status</option>
-                <option value="menunggu_verifikasi">Menunggu Verifikasi</option>
-                <option value="terverifikasi">Terverifikasi</option>
-                <option value="lulus_seleksi">Lulus Seleksi</option>
-            </select>
-
-            <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1E293B] hover:bg-slate-800 text-white text-xs font-semibold transition-all cursor-pointer shrink-0 shadow-sm">
-                Filter Data
-            </button>
-        </form>
-    </div>
-
-    <!-- TWO COLUMN HIGH-DENSITY SECTION: RECENT APPLICANTS & MAJORS DISTRIBUTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
-        <!-- LEFT COLUMN (7 COLS): RECENT REGISTRATIONS TABLE -->
-        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <!-- Table Header Strip -->
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+    {{-- TREN + STATUS --}}
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="{{ $card }} xl:col-span-7 p-6">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 class="font-extrabold text-base text-[#0F172A] tracking-tight">
-                        Pendaftar Masuk Terakhir
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Calon siswa terbaru yang mendaftar online</p>
+                    <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Pendaftar 14 Hari Terakhir</x-sketch.underline></h2>
+                    <p class="text-xs text-brand-ink/60 mt-3">Jumlah formulir masuk per hari.</p>
                 </div>
-                <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="text-xs font-bold text-[#8B1D24] hover:text-[#72151B] flex items-center gap-1 transition-colors">
-                    <span>Lihat Semua ({{ $totalPendaftar }})</span>
-                    <span>&rarr;</span>
+                <span class="font-display font-bold text-2xl text-brand-ink">{{ $trendTotal }}</span>
+            </div>
+            <div class="mt-6 h-40 flex items-end gap-1.5" role="img" aria-label="Grafik batang pendaftar harian 14 hari terakhir">
+                @foreach($trend as $day)
+                    <div class="group relative flex-1 h-full flex flex-col justify-end items-center">
+                        <span class="absolute -top-6 text-[11px] font-bold text-brand-ink opacity-0 group-hover:opacity-100 transition-opacity">{{ $day['total'] }}</span>
+                        <div class="w-full max-w-[28px] rounded-t-md {{ $day['date']->isToday() ? 'bg-brand-darkred' : 'bg-brand-rose/60 group-hover:bg-brand-rose' }} transition-colors" style="height: {{ $day['total'] > 0 ? max(4, $day['total'] / $trendMax * 100) : 2 }}%"></div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="mt-2 flex gap-1.5 text-[10px] text-brand-ink/50">
+                @foreach($trend as $day)
+                    <span class="flex-1 text-center">{{ $loop->first || $loop->last || $loop->index % 3 === 0 ? $day['date']->format('d/m') : '' }}</span>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="{{ $card }} xl:col-span-5 p-6">
+            <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Status Seleksi</x-sketch.underline></h2>
+            <div class="mt-6 flex h-3 rounded-full overflow-hidden bg-[#F5F4F2]" role="img" aria-label="Komposisi status seleksi">
+                @foreach($statusRows as $row)
+                    @if($row['total'] > 0)
+                        <div class="{{ $row['tone'] }} h-full border-r-2 border-white last:border-r-0" style="width: {{ $row['total'] / max(1, $totalPendaftar) * 100 }}%"></div>
+                    @endif
+                @endforeach
+            </div>
+            <ul class="mt-5 space-y-2.5">
+                @foreach($statusRows as $row)
+                    <li>
+                        <a href="{{ route('ppdb.dashboard.pendaftar', ['status' => $row['key']]) }}" class="flex items-center gap-3 text-sm rounded-lg px-2 py-1 -mx-2 hover:bg-[#F5F4F2] transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full {{ $row['tone'] }}"></span>
+                            <span class="flex-1 text-brand-ink/80">{{ $row['label'] }}</span>
+                            <span class="font-display font-bold text-base text-brand-ink">{{ $row['total'] }}</span>
+                            <span class="w-10 text-right text-xs text-brand-ink/50">{{ $totalPendaftar > 0 ? round($row['total'] / $totalPendaftar * 100) : 0 }}%</span>
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+            <div class="mt-5 pt-4 border-t border-brand-ink/10 grid grid-cols-2 gap-3 text-xs">
+                <div class="rounded-xl bg-[#F5F4F2] p-3">
+                    <span class="text-brand-ink/60">Laki-laki</span>
+                    <span class="block font-display font-bold text-2xl text-brand-ink">{{ $genderL }}</span>
+                </div>
+                <div class="rounded-xl bg-[#F5F4F2] p-3">
+                    <span class="text-brand-ink/60">Perempuan</span>
+                    <span class="block font-display font-bold text-2xl text-brand-ink">{{ $genderP }}</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- PENDAFTAR TERBARU + JURUSAN --}}
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="{{ $card }} xl:col-span-7 overflow-hidden flex flex-col">
+            <div class="px-6 pt-6 pb-4 flex items-end justify-between gap-4">
+                <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Pendaftar Terbaru</x-sketch.underline></h2>
+                <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="group inline-flex items-center gap-1.5 text-xs font-semibold text-brand-darkred">
+                    Semua ({{ number_format($totalPendaftar) }}) <x-sketch.arrow class="w-5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
                 </a>
             </div>
-
-            <!-- Table Container -->
-            <div class="overflow-x-auto flex-1">
-                <table class="w-full text-left text-xs border-collapse">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[560px]">
                     <thead>
-                        <tr class="bg-slate-50/80 border-b border-slate-100 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                            <th class="py-3 px-4">No Reg</th>
-                            <th class="py-3 px-4">Nama Siswa</th>
-                            <th class="py-3 px-4">Jurusan</th>
-                            <th class="py-3 px-4">Status</th>
-                            <th class="py-3 px-4 text-right">Aksi</th>
+                        <tr class="text-left text-[11px] font-bold uppercase tracking-wider text-brand-ink/50 border-y border-brand-ink/10 bg-[#F5F4F2]/60">
+                            <th class="px-6 py-2.5">Calon Siswa</th>
+                            <th class="px-3 py-2.5">Jurusan</th>
+                            <th class="px-3 py-2.5">Status</th>
+                            <th class="px-6 py-2.5 text-right"><span class="sr-only">Aksi</span></th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse ($recentPendaftar as $student)
-                            @php
-                                $badge = $student->status_badge;
-                            @endphp
-                            <tr class="hover:bg-slate-50/60 transition-colors">
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <span class="font-mono font-bold text-xs text-[#8B1D24] bg-red-50/70 px-2.5 py-0.5 rounded-lg inline-block">
-                                        {{ $student->nomor_registrasi }}
-                                    </span>
+                    <tbody class="divide-y divide-brand-ink/5">
+                        @forelse($recentPendaftar as $student)
+                            @php $badge = $student->status_badge; @endphp
+                            <tr class="hover:bg-[#F5F4F2]/50">
+                                <td class="px-6 py-3">
+                                    <div class="font-semibold text-brand-ink truncate max-w-[220px]">{{ $student->nama_lengkap }}</div>
+                                    <div class="text-xs text-brand-ink/60"><span class="tabular-nums text-brand-darkred">{{ $student->nomor_registrasi }}</span> · {{ \Illuminate\Support\Str::limit($student->asal_sekolah, 24) }}</div>
                                 </td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <div class="font-bold text-slate-900 text-xs">{{ $student->nama_lengkap }}</div>
-                                    <div class="text-[11px] text-slate-400 truncate max-w-[170px]">{{ $student->asal_sekolah }}</div>
+                                <td class="px-3 py-3 text-xs font-semibold text-brand-ink whitespace-nowrap">{{ $majors[$student->jurusan] ?? $student->jurusan }}</td>
+                                <td class="px-3 py-3">
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap {{ $badge['bg'] }}">{{ $badge['label'] }}</span>
                                 </td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <span class="font-semibold text-slate-700 text-xs">
-                                        {{ $majors[$student->jurusan] ?? $student->jurusan }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold border {{ $badge['bg'] }}">
-                                        {{ $badge['label'] }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-right whitespace-nowrap">
-                                    <a href="{{ route('ppdb.dashboard.pendaftar.detail', $student->id) }}" 
-                                       class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-[#1E293B] hover:text-white text-slate-700 transition-colors inline-block">
-                                        Detail / Edit
-                                    </a>
+                                <td class="px-6 py-3 text-right">
+                                    <a href="{{ route('ppdb.dashboard.pendaftar.detail', $student->id) }}" class="inline-flex items-center gap-1 h-8 px-3 rounded-full text-xs font-semibold bg-brand-softmist text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">Detail</a>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-xs text-slate-400">
-                                    Belum ada data pendaftar yang masuk.
-                                </td>
-                            </tr>
+                            <tr><td colspan="4" class="px-6 py-12 text-center text-sm text-brand-ink/50">Belum ada calon siswa yang mendaftar.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-
-            <!-- Table Footer -->
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs">
-                <span class="text-slate-500">Menampilkan 7 pendaftar terbaru</span>
-                <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="font-bold text-[#8B1D24] hover:underline flex items-center gap-1">
-                    <span>Buka Semua Pendaftar</span>
-                    <span>&rarr;</span>
-                </a>
-            </div>
         </div>
 
-        <!-- RIGHT COLUMN (5 COLS): DISTRIBUSI KUOTA PER JURUSAN -->
-        <div id="jurusan-section" class="lg:col-span-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <!-- Header Strip -->
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="{{ $card }} xl:col-span-5 p-6">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <h2 class="font-extrabold text-base text-[#0F172A] tracking-tight">
-                        Distribusi Jurusan
-                    </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Sebaran peminatan kompetensi keahlian</p>
+                    <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Peminat Jurusan</x-sketch.underline></h2>
+                    <p class="text-xs text-brand-ink/60 mt-3">Kuota {{ $kuotaPerJurusan }} kursi per jurusan.</p>
                 </div>
-                <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
-                    72 Kuota/Kelas
-                </span>
+                <a href="{{ route('ppdb.akomodasi') }}" target="_blank" class="text-xs font-semibold text-brand-darkred hover:underline shrink-0">Info biaya</a>
             </div>
-
-            <!-- List of Majors -->
-            <div class="p-4 space-y-3.5 flex-1">
-                @foreach ($majors as $fullName => $shortName)
+            <ul class="mt-5 space-y-4">
+                @foreach($jurusanCounts as $fullName => $count)
                     @php
-                        $count = $jurusanCounts[$fullName] ?? 0;
-                        $percent = $totalPendaftar > 0 ? round(($count / $totalPendaftar) * 100) : 0;
-                        $quotaPercent = min(100, round(($count / 72) * 100));
+                        $code = $majors[$fullName] ?? '—';
+                        $fill = min(100, (int) round($count / $kuotaPerJurusan * 100));
                     @endphp
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-xs text-slate-800">{{ $shortName }}</span>
-                                <span class="text-[11px] text-slate-400 truncate max-w-[160px]" title="{{ $fullName }}">
-                                    {{ $fullName }}
+                    <li>
+                        <a href="{{ $fullName !== 'Lainnya' ? route('ppdb.dashboard.pendaftar', ['jurusan' => $fullName]) : route('ppdb.dashboard.pendaftar') }}" class="block group">
+                            <div class="flex items-center justify-between gap-3 text-sm">
+                                <span class="flex items-center gap-2 min-w-0">
+                                    <span class="w-10 shrink-0 font-display font-bold text-sm text-brand-darkred">{{ $code }}</span>
+                                    <span class="text-brand-ink/80 truncate group-hover:text-brand-ink">{{ $fullName }}</span>
                                 </span>
+                                <span class="shrink-0"><b class="font-display font-bold text-base text-brand-ink">{{ $count }}</b><span class="text-xs text-brand-ink/50"> / {{ $kuotaPerJurusan }}</span></span>
                             </div>
-                            <div class="text-right">
-                                <span class="font-mono font-bold text-xs text-[#8B1D24]">{{ $count }}</span>
-                                <span class="text-[11px] text-slate-400">/ 72</span>
+                            <div class="mt-1.5 h-2 rounded-full bg-[#F5F4F2] overflow-hidden">
+                                <div class="h-full rounded-full {{ $fill >= 100 ? 'bg-brand-ink' : 'bg-brand-darkred' }}" style="width: {{ $fill }}%"></div>
                             </div>
-                        </div>
-
-                        <!-- Thin Rounded Progress Bar with Maroon Gradient -->
-                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-gradient-to-r from-[#8B1D24] to-[#A11B24] h-full rounded-full transition-all duration-300" 
-                                 style="width: {{ $quotaPercent }}%"></div>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[10px] text-slate-400 mt-1">
-                            <span>{{ $percent }}% dari total pendaftar</span>
-                            <span>{{ $quotaPercent }}% kuota terpenuhi</span>
-                        </div>
-                    </div>
+                        </a>
+                    </li>
                 @endforeach
-            </div>
+            </ul>
+        </div>
+    </section>
 
-            <!-- Footer Action -->
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-                <a href="{{ route('ppdb.akomodasi') }}" target="_blank" class="text-xs font-semibold text-[#8B1D24] hover:underline flex items-center justify-between">
-                    <span>Lihat Informasi Rincian Biaya & Program Jurusan</span>
-                    <span>&rarr;</span>
-                </a>
+    {{-- GELOMBANG + ASAL SEKOLAH --}}
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="{{ $card }} p-6">
+            <div class="flex items-end justify-between gap-4">
+                <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Gelombang</x-sketch.underline></h2>
+                <a href="{{ route('ppdb.dashboard.gelombang') }}" class="text-xs font-semibold text-brand-darkred hover:underline">Kelola</a>
             </div>
+            <ul class="mt-5 space-y-4">
+                @forelse($waves as $wave)
+                    @php $fill = $wave->kuota > 0 ? min(100, (int) round($wave->pendaftar_count / $wave->kuota * 100)) : 0; @endphp
+                    <li>
+                        <div class="flex items-center justify-between gap-2 text-sm">
+                            <span class="font-semibold text-brand-ink flex items-center gap-2">
+                                {{ $wave->nama }}
+                                @if($wave->is_active)<span class="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase">Aktif</span>@endif
+                            </span>
+                            <span class="text-xs text-brand-ink/60">{{ $wave->pendaftar_count }} / {{ $wave->kuota }}</span>
+                        </div>
+                        <div class="mt-1.5 h-2 rounded-full bg-[#F5F4F2] overflow-hidden">
+                            <div class="h-full rounded-full {{ $wave->is_active ? 'bg-brand-darkred' : 'bg-brand-ink/25' }}" style="width: {{ $fill }}%"></div>
+                        </div>
+                        <p class="mt-1 text-[11px] text-brand-ink/50">{{ $wave->periode_formatted }}</p>
+                    </li>
+                @empty
+                    <li class="text-sm text-brand-ink/50 text-center py-6">Belum ada gelombang.</li>
+                @endforelse
+            </ul>
         </div>
 
-    </div>
-
-    <!-- QUICK ADMIN GUIDE STRIP (Clean Rounded Card with Step Badges) -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-sm">
-        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-100">
-            <div>
-                <span class="font-extrabold text-sm text-[#0F172A] tracking-tight block">
-                    Alur Kerja Panitia PPDB
-                </span>
-                <span class="text-xs text-slate-400">SMK Plus Pelita Nusantara Bogor</span>
-            </div>
-            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
-                SOP 2027
-            </span>
+        <div class="{{ $card }} p-6">
+            <h2 class="font-display font-bold text-xl uppercase tracking-wide text-brand-ink"><x-sketch.underline size="sm">Asal Sekolah Teratas</x-sketch.underline></h2>
+            <ol class="mt-5 space-y-2.5">
+                @forelse($topSekolah as $sekolah => $count)
+                    <li class="flex items-center gap-3 text-sm">
+                        <span class="w-7 h-7 rounded-full grid place-items-center font-display font-bold text-xs {{ $loop->first ? 'bg-brand-darkred text-white' : 'bg-brand-softmist text-brand-ink' }}">{{ $loop->iteration }}</span>
+                        <span class="flex-1 text-brand-ink/80 truncate">{{ $sekolah }}</span>
+                        <span class="font-display font-bold text-base text-brand-ink">{{ $count }}</span>
+                    </li>
+                @empty
+                    <li class="text-sm text-brand-ink/50 text-center py-6">Belum ada data.</li>
+                @endforelse
+            </ol>
+            <p class="mt-5 pt-4 border-t border-brand-ink/10 text-xs text-brand-ink/60">{{ $totalPengumuman }} pengumuman diterbitkan · <a href="{{ route('ppdb.dashboard.pengumuman') }}" class="font-semibold text-brand-darkred hover:underline">kelola</a></p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-100">
-                <div class="flex items-center gap-2.5 mb-2">
-                    <span class="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shadow-xs">1</span>
-                    <span class="font-bold text-xs text-slate-900">Verifikasi Dokumen</span>
-                </div>
-                <p class="text-xs text-slate-500 leading-relaxed">
-                    Buka menu Pendaftar Siswa, teliti NISN, KK, asal sekolah, dan nomor kontak pendaftar & wali siswa.
-                </p>
-            </div>
-            <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-100">
-                <div class="flex items-center gap-2.5 mb-2">
-                    <span class="w-7 h-7 rounded-full bg-[#8B1D24] text-white flex items-center justify-center font-bold text-xs shadow-xs">2</span>
-                    <span class="font-bold text-xs text-slate-900">Update Status & Catatan</span>
-                </div>
-                <p class="text-xs text-slate-500 leading-relaxed">
-                    Buka tombol "Detail/Edit", sesuaikan status berkas menjadi "Terverifikasi" atau "Lulus Seleksi".
-                </p>
-            </div>
-            <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-100">
-                <div class="flex items-center gap-2.5 mb-2">
-                    <span class="w-7 h-7 rounded-full bg-[#1E293B] text-white flex items-center justify-center font-bold text-xs shadow-xs">3</span>
-                    <span class="font-bold text-xs text-slate-900">Hubungi Calon Siswa</span>
-                </div>
-                <p class="text-xs text-slate-500 leading-relaxed">
-                    Kirim pesan konfirmasi langsung via WhatsApp dengan sekali klik tombol kontak yang tersedia di tabel.
-                </p>
-            </div>
-        </div>
-    </div>
-
+    </section>
 </div>
 @endsection

@@ -8,6 +8,7 @@ use App\Models\PpdbRegistration;
 use App\Models\PpdbWave;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class PpdbSeeder extends Seeder
 {
@@ -104,7 +105,7 @@ class PpdbSeeder extends Seeder
                 'file_path' => 'https://images.lekar.co.id/file/pelita/infografis_pelita_nusantara.pdf',
                 'file_ukuran' => '2.4 MB',
                 'action_link' => '/ppdb/akomodasi',
-                'action_text' => 'Lihat Rincian Biaya & Rekening',
+                'action_text' => 'Lihat Rincian Biaya',
             ],
             [
                 'judul' => 'Program Beasiswa Jalur Prestasi Akademik & Tahfidz Quran 2027/2028',
@@ -154,32 +155,6 @@ class PpdbSeeder extends Seeder
         PpdbFeeSetting::set('biaya_seragam', 1250000, 'Paket 5 Stel Seragam Lengkap + Jas Almamater', 'biaya');
         PpdbFeeSetting::set('potongan_gelombang_1', 500000, 'Diskon Early Bird Gelombang 1', 'biaya');
 
-        // Rekening Pembayaran
-        $rekening = [
-            [
-                'bank' => 'Bank Syariah Indonesia (BSI)',
-                'nomor' => '7188-299-102',
-                'atas_nama' => 'YAYASAN PELITA NUSANTARA PPDB',
-                'badge' => 'Rekening Utama',
-                'logo' => 'BSI',
-            ],
-            [
-                'bank' => 'Bank Rakyat Indonesia (BRI)',
-                'nomor' => '0421-01-002931-50-8',
-                'atas_nama' => 'SMK PLUS PELITA NUSANTARA',
-                'badge' => 'Alternatif',
-                'logo' => 'BRI',
-            ],
-            [
-                'bank' => 'Bank Mandiri',
-                'nomor' => '133-00-2491029-1',
-                'atas_nama' => 'PPDB PELITA NUSANTARA',
-                'badge' => 'Transfer ATM / Livin',
-                'logo' => 'MANDIRI',
-            ],
-        ];
-        PpdbFeeSetting::set('daftar_rekening', $rekening, 'Daftar Rekening Bank Resmi', 'rekening');
-
         // Kontak Helpdesk
         PpdbFeeSetting::set('kontak_wa', '6281283921029', 'Nomor WhatsApp Helpdesk Panitia', 'kontak');
         PpdbFeeSetting::set('email_cs', 'ppdb@smkpelitanusantara.sch.id', 'Email Sekretariat PPDB', 'kontak');
@@ -205,16 +180,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Pengembangan Perangkat Lunak dan Gim (PPLG)',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Rekayasa Perangkat Lunak',
                 'asal_sekolah' => 'SMP Negeri 1 Cibinong',
                 'nomor_kontak_pendaftar' => '081289123891',
                 'nomor_kontak_ortu' => '081389028192',
                 'email' => 'rizky.pratama@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Media Sosial Instagram', 'Teman / Alumni'],
-                'alasan_minat' => 'Fasilitas Lab Komputer Lengkap & Kurikulum Industri Game',
-                'ukuran_seragam' => 'L',
+                'alasan_minat' => ['Fasilitas Lab Komputer Lengkap & Kurikulum Industri Game'],
                 'status' => 'lulus_seleksi',
                 'catatan' => 'Lolos seleksi wawancara dan tes logika pemrograman dengan nilai A.',
             ],
@@ -235,16 +208,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Desain Komunikasi Visual (DKV)',
-                'jalur_seleksi' => 'Jalur Prestasi',
+                'jurusan' => 'Desain Komunikasi Visual',
                 'asal_sekolah' => 'SMP IT Al-Madinah Cibinong',
                 'nomor_kontak_pendaftar' => '085718290123',
                 'nomor_kontak_ortu' => '081298301920',
                 'email' => 'aisyah.siti@yahoo.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Guru / BK Sekolah Asal'],
-                'alasan_minat' => 'Tertarik dunia ilustrasi digital dan studio multimedia',
-                'ukuran_seragam' => 'M',
+                'alasan_minat' => ['Tertarik dunia ilustrasi digital dan studio multimedia'],
                 'status' => 'terverifikasi',
                 'catatan' => 'Portofolio desain grafis memenuhi syarat jalur prestasi.',
             ],
@@ -265,16 +236,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Teknik Jaringan Komputer dan Telekomunikasi (TJKT)',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Teknik Komputer Jaringan',
                 'asal_sekolah' => 'SMP Negeri 2 Sukaraja',
                 'nomor_kontak_pendaftar' => '087819203912',
                 'nomor_kontak_ortu' => '081920391209',
                 'email' => 'dimas.arya@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Brosur / Spanduk'],
-                'alasan_minat' => 'Ingin menjadi Cyber Security dan Network Engineer',
-                'ukuran_seragam' => 'XL',
+                'alasan_minat' => ['Ingin menjadi Cyber Security dan Network Engineer'],
                 'status' => 'menunggu_verifikasi',
                 'catatan' => 'Menunggu verifikasi scan kartu keluarga asli.',
             ],
@@ -295,16 +264,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Animasi',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Desain Komunikasi Visual',
                 'asal_sekolah' => 'SMP Negeri 4 Kota Bogor',
                 'nomor_kontak_pendaftar' => '081398201948',
                 'nomor_kontak_ortu' => '081283910291',
                 'email' => 'anindya.kirana@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Media Sosial Instagram', 'Website Sekolah'],
-                'alasan_minat' => 'Bakat menggambar karakter anime dan 3D modelling',
-                'ukuran_seragam' => 'S',
+                'alasan_minat' => ['Bakat menggambar karakter anime dan 3D modelling'],
                 'status' => 'terverifikasi',
                 'catatan' => 'Berkas lengkap. Berhak mengikuti observasi.',
             ],
@@ -325,16 +292,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Broadcasting dan Perfilman (BC)',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Teknik Otomasi Industri',
                 'asal_sekolah' => 'SMP Negeri 8 Depok',
                 'nomor_kontak_pendaftar' => '089678129034',
                 'nomor_kontak_ortu' => '081290341829',
                 'email' => 'fajar.bc@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Kunjungan Roadshow Sekolah'],
-                'alasan_minat' => 'Tertarik videografi, editing kamera, dan broadcast studio',
-                'ukuran_seragam' => 'L',
+                'alasan_minat' => ['Tertarik videografi, editing kamera, dan broadcast studio'],
                 'status' => 'lulus_seleksi',
                 'catatan' => 'Dinyatakan Lulus Seleksi Utama Broadcasting.',
             ],
@@ -355,16 +320,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Akuntansi dan Keuangan Lembaga (AKL)',
-                'jalur_seleksi' => 'Jalur Prestasi',
+                'jurusan' => 'Layanan Perbankan',
                 'asal_sekolah' => 'MTs Negeri 1 Bogor',
                 'nomor_kontak_pendaftar' => '081289301923',
                 'nomor_kontak_ortu' => '081390182938',
                 'email' => 'nabila.zahra@outlook.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Keluarga / Saudara'],
-                'alasan_minat' => 'Prospek kerja perbankan syariah dan akuntan publik',
-                'ukuran_seragam' => 'M',
+                'alasan_minat' => ['Prospek kerja perbankan syariah dan akuntan publik'],
                 'status' => 'terverifikasi',
                 'catatan' => 'Verifikasi nilai matematika rapor semester 1-5 rata-rata 88.',
             ],
@@ -385,16 +348,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Manajemen Perkantoran dan Layanan Bisnis (MPLB)',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Layanan Perbankan',
                 'asal_sekolah' => 'SMP Bina Bangsa Mandiri',
                 'nomor_kontak_pendaftar' => '085819203948',
                 'nomor_kontak_ortu' => '081283920194',
                 'email' => 'bagas.prasetyo@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Teman / Alumni'],
-                'alasan_minat' => 'Ingin mendalami administrasi perkantoran digital',
-                'ukuran_seragam' => 'L',
+                'alasan_minat' => ['Ingin mendalami administrasi perkantoran digital'],
                 'status' => 'menunggu_verifikasi',
                 'catatan' => 'Menunggu verifikasi pembayaran biaya pendaftaran.',
             ],
@@ -415,16 +376,14 @@ class PpdbSeeder extends Seeder
                 'sekolah_pilihan_unit' => 'SMK Plus Pelita Nusantara Bogor',
                 'tipe_pendaftar' => 'Siswa Baru',
                 'kelas_pilihan' => 'Kelas X (Sepuluh)',
-                'jurusan' => 'Pengembangan Perangkat Lunak dan Gim (PPLG)',
-                'jalur_seleksi' => 'Jalur Reguler',
+                'jurusan' => 'Rekayasa Perangkat Lunak',
                 'asal_sekolah' => 'SMP Kristen Penabur Bogor',
                 'nomor_kontak_pendaftar' => '081298492019',
                 'nomor_kontak_ortu' => '08119830192',
                 'email' => 'kevin.wijaya@gmail.com',
                 'jenis_layanan' => ['Full Day School'],
                 'sumber_info' => ['Media Sosial Instagram'],
-                'alasan_minat' => 'Belajar web development & game programming',
-                'ukuran_seragam' => 'M',
+                'alasan_minat' => ['Belajar web development & game programming'],
                 'status' => 'lulus_seleksi',
                 'catatan' => 'Lulus seleksi wawancara dan tes masuk.',
             ],
@@ -435,6 +394,11 @@ class PpdbSeeder extends Seeder
                 ['nomor_registrasi' => $p['nomor_registrasi']],
                 $p
             );
+        }
+
+        foreach (PpdbRegistration::whereNull('uuid')->get() as $reg) {
+            $reg->uuid = (string) Str::uuid();
+            $reg->save();
         }
     }
 }

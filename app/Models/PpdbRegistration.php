@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class PpdbRegistration extends Model
 {
@@ -14,10 +15,49 @@ class PpdbRegistration extends Model
 
     protected $guarded = ['id'];
 
+    /**
+     * Pilihan "Sumber Informasi PPDB" di formulir (boleh pilih lebih dari satu)
+     */
+    public const SUMBER_INFO_OPTIONS = [
+        'Spanduk',
+        'Brosur',
+        'Iklan',
+        'Keluarga / Kerabat / Teman',
+        'Pernah Datang Ke Sekolah',
+        'Youtube',
+        'Lain-lain',
+    ];
+
+    /**
+     * Pilihan "Alasan Utama Minat Mendaftar" di formulir (boleh pilih lebih dari satu)
+     */
+    public const ALASAN_MINAT_OPTIONS = [
+        'Tim Akademik yang berpengalaman',
+        'Lokasi Sekolah dekat Dari Rumah',
+        'Digitalisasi Sekolah',
+        'Gedung dan Sarana Lengkap',
+        'Kualitas Guru yang Baik',
+        'Reputasi Sekolah Baik',
+        'Lainnya',
+    ];
+
     protected $casts = [
         'jenis_layanan' => 'array',
         'sumber_info' => 'array',
+        'alasan_minat' => 'array',
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $registration) {
+            if (empty($registration->uuid)) {
+                $registration->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Relasi ke gelombang pendaftaran

@@ -11,28 +11,28 @@
         <!-- Status Filter Tabs -->
         <div class="flex items-center flex-wrap gap-1.5">
             <a href="{{ route('ppdb.dashboard.pendaftar', array_merge(request()->except('status', 'page'), [])) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-semibold {{ empty($status) ? 'bg-[#1E293B] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
+               class="px-4 py-2 rounded-xl text-xs font-semibold {{ empty($status) ? 'bg-[#241012] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
                 <span>Semua</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ empty($status) ? 'bg-white/20 text-white' : 'bg-slate-200/70 text-slate-600' }}">
                     {{ $countAll }}
                 </span>
             </a>
             <a href="{{ route('ppdb.dashboard.pendaftar', array_merge(request()->except('page'), ['status' => 'menunggu_verifikasi'])) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'menunggu_verifikasi' ? 'bg-[#1E293B] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
+               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'menunggu_verifikasi' ? 'bg-[#241012] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
                 <span>Menunggu</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $status === 'menunggu_verifikasi' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }}">
                     {{ $countMenunggu }}
                 </span>
             </a>
             <a href="{{ route('ppdb.dashboard.pendaftar', array_merge(request()->except('page'), ['status' => 'terverifikasi'])) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'terverifikasi' ? 'bg-[#1E293B] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
+               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'terverifikasi' ? 'bg-[#241012] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
                 <span>Terverifikasi</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $status === 'terverifikasi' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
                     {{ $countTerverifikasi }}
                 </span>
             </a>
             <a href="{{ route('ppdb.dashboard.pendaftar', array_merge(request()->except('page'), ['status' => 'lulus_seleksi'])) }}" 
-               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'lulus_seleksi' ? 'bg-[#1E293B] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
+               class="px-4 py-2 rounded-xl text-xs font-semibold {{ $status === 'lulus_seleksi' ? 'bg-[#241012] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }} transition-all flex items-center gap-2">
                 <span>Lulus</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $status === 'lulus_seleksi' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-800' }}">
                     {{ $countLulus }}
@@ -54,14 +54,14 @@
                 type="button" 
                 onclick="window.print()" 
                 class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5 text-[#8B1D24]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 text-[#7A1018]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
                 <span>Cetak Rekap</span>
             </button>
 
             <a href="{{ route('ppdb.index') }}" target="_blank"
-               class="px-3.5 py-2 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5">
+               class="px-3.5 py-2 rounded-xl bg-[#7A1018] hover:bg-[#5C0B12] text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -129,10 +129,10 @@
 
             <!-- Submit & Reset -->
             <div class="sm:col-span-1 flex items-center gap-1.5">
-                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#1E293B] hover:bg-slate-800 text-white text-xs font-semibold transition-all cursor-pointer text-center shadow-xs">
+                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-[#241012] hover:bg-slate-800 text-white text-xs font-semibold transition-all cursor-pointer text-center shadow-xs">
                     Cari
                 </button>
-                @if ($search || $jurusan || $status || $jalur || ($sort && $sort !== 'terbaru'))
+                @if ($search || $jurusan || $status || ($sort && $sort !== 'terbaru'))
                     <a href="{{ route('ppdb.dashboard.pendaftar') }}" 
                        class="px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold cursor-pointer transition-colors" 
                        title="Reset Filter">
@@ -149,14 +149,14 @@
         <!-- Table Top Info Strip -->
         <div class="px-5 py-3.5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/50">
             <div class="flex items-center gap-2.5">
-                <span class="text-xs font-bold text-[#0F172A]">
+                <span class="text-xs font-bold text-[#241012]">
                     Total Ditemukan:
                 </span>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1E293B] text-white">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#241012] text-white">
                     {{ $pendaftarList->total() }} Pendaftar
                 </span>
                 @if ($search)
-                    <span class="text-xs text-[#8B1D24] font-medium">
+                    <span class="text-xs text-[#7A1018] font-medium">
                         (Kata kunci: "{{ $search }}")
                     </span>
                 @endif
@@ -176,11 +176,8 @@
                         <th class="py-3.5 px-4 whitespace-nowrap">Nama Calon Siswa</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">NISN / KK</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Jurusan Pilihan</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">Asal Sekolah</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">Jalur Seleksi</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">Kontak WhatsApp</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Status</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap text-center">Aksi / Update</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -192,7 +189,7 @@
                             <!-- No Reg -->
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <a href="{{ route('ppdb.dashboard.pendaftar.detail', $pendaftar->id) }}" 
-                                   class="font-mono font-bold text-xs text-[#8B1D24] bg-red-50/70 hover:bg-red-100 px-2.5 py-1 rounded-lg inline-block transition-colors">
+                                   class="tabular-nums font-bold text-xs text-[#7A1018] bg-red-50/70 hover:bg-red-100 px-2.5 py-1 rounded-lg inline-block transition-colors">
                                     {{ $pendaftar->nomor_registrasi }}
                                 </a>
                                 <div class="text-[10px] text-slate-400 mt-1">
@@ -203,7 +200,7 @@
                             <!-- Nama Lengkap & Panggilan -->
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <a href="{{ route('ppdb.dashboard.pendaftar.detail', $pendaftar->id) }}" 
-                                   class="font-bold text-slate-900 hover:text-[#8B1D24] block text-xs transition-colors">
+                                   class="font-bold text-slate-900 hover:text-[#7A1018] block text-xs transition-colors">
                                     {{ $pendaftar->nama_lengkap }}
                                 </a>
                                 <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
@@ -215,7 +212,7 @@
                             </td>
 
                             <!-- NISN & KK -->
-                            <td class="py-3.5 px-4 font-mono text-[11px] whitespace-nowrap">
+                            <td class="py-3.5 px-4 tabular-nums text-[11px] whitespace-nowrap">
                                 <div><span class="text-slate-400 font-sans">NISN:</span> <span class="font-bold text-slate-800">{{ $pendaftar->nisn ?? '-' }}</span></div>
                                 <div class="text-[10px] text-slate-400 mt-0.5"><span class="font-sans">KK:</span> {{ $pendaftar->nomor_kk ?? '-' }}</div>
                             </td>
@@ -230,44 +227,64 @@
                                 </span>
                             </td>
 
-                            <!-- Asal Sekolah -->
-                            <td class="py-3.5 px-4 text-xs text-slate-600 font-medium whitespace-nowrap">
-                                {{ $pendaftar->asal_sekolah }}
-                            </td>
-
-                            <!-- Jalur -->
+                            <!-- Status Badge & Quick Update Trigger -->
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/60">
-                                    {{ $pendaftar->jalur_seleksi }}
-                                </span>
-                            </td>
+                                <div class="relative inline-block text-left" x-data="{ statusMenu: false }">
+                                    <button 
+                                        type="button"
+                                        @click="statusMenu = !statusMenu" 
+                                        class="px-3 py-1.5 rounded-xl text-[11px] font-semibold border {{ $badge['bg'] }} inline-flex items-center gap-1.5 hover:shadow-xs hover:opacity-90 transition-all cursor-pointer group"
+                                        title="Klik untuk ubah status pendaftar">
+                                        <span>{{ $badge['label'] }}</span>
+                                        <svg class="w-3 h-3 opacity-60 group-hover:opacity-100 transition-transform" :class="statusMenu ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
 
-                            <!-- Kontak WA Siswa & Wali -->
-                            <td class="py-3.5 px-4 whitespace-nowrap">
-                                <div>
-                                    <a href="https://wa.me/{{ preg_replace('/\D/', '', $pendaftar->nomor_kontak_pendaftar) }}" target="_blank" 
-                                       class="font-mono text-emerald-800 hover:text-emerald-950 font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] transition-colors w-fit">
-                                        <span>📱</span>
-                                        <span>{{ $pendaftar->nomor_kontak_pendaftar }}</span>
-                                    </a>
+                                    <div 
+                                        x-show="statusMenu" 
+                                        x-cloak
+                                        @click.away="statusMenu = false"
+                                        class="absolute left-0 mt-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl z-50 p-1.5 text-left flex flex-col gap-1 whitespace-normal"
+                                        x-transition:enter="transition ease-out duration-150"
+                                        x-transition:enter-start="opacity-0 scale-95"
+                                        x-transition:enter-end="opacity-100 scale-100">
+                                        <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-0.5">
+                                            Ubah Status
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            @click="changeStatus({{ $pendaftar->id }}, 'menunggu_verifikasi'); statusMenu = false;"
+                                            class="w-full block text-left px-3 py-2 rounded-xl hover:bg-amber-50 text-xs font-semibold text-amber-800 cursor-pointer transition-colors {{ $pendaftar->status === 'menunggu_verifikasi' ? 'bg-amber-50/70 font-bold' : '' }}">
+                                            ● Menunggu Verifikasi
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="changeStatus({{ $pendaftar->id }}, 'terverifikasi'); statusMenu = false;"
+                                            class="w-full block text-left px-3 py-2 rounded-xl hover:bg-emerald-50 text-xs font-semibold text-emerald-800 cursor-pointer transition-colors {{ $pendaftar->status === 'terverifikasi' ? 'bg-emerald-50/70 font-bold' : '' }}">
+                                            ● Terverifikasi
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="changeStatus({{ $pendaftar->id }}, 'lulus_seleksi'); statusMenu = false;"
+                                            class="w-full block text-left px-3 py-2 rounded-xl hover:bg-blue-50 text-xs font-semibold text-blue-800 cursor-pointer transition-colors {{ $pendaftar->status === 'lulus_seleksi' ? 'bg-blue-50/70 font-bold' : '' }}">
+                                            ● Lulus Seleksi
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="changeStatus({{ $pendaftar->id }}, 'tidak_lulus'); statusMenu = false;"
+                                            class="w-full block text-left px-3 py-2 rounded-xl hover:bg-rose-50 text-xs font-semibold text-rose-800 cursor-pointer transition-colors {{ $pendaftar->status === 'tidak_lulus' ? 'bg-rose-50/70 font-bold' : '' }}">
+                                            ● Tidak Lolos
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="text-[10px] text-slate-400 mt-1 pl-1">
-                                    Ortu: {{ $pendaftar->nomor_kontak_ortu }}
-                                </div>
-                            </td>
-
-                            <!-- Status Badge -->
-                            <td class="py-3.5 px-4 whitespace-nowrap">
-                                <span class="px-3 py-1 rounded-full text-[11px] font-semibold border {{ $badge['bg'] }} inline-block">
-                                    {{ $badge['label'] }}
-                                </span>
                             </td>
 
                             <!-- Actions -->
                             <td class="py-3.5 px-4 whitespace-nowrap text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     <!-- Cetak Kartu Button -->
-                                    <a href="{{ route('ppdb.cetak-kartu', $pendaftar->id) }}" target="_blank"
+                                    <a href="{{ route('ppdb.cetak-kartu', $pendaftar->uuid ?? $pendaftar->id) }}" target="_blank"
                                        class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors inline-flex items-center justify-center"
                                        title="Cetak Kartu Peserta Resmi">
                                         <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,49 +294,10 @@
 
                                     <!-- Detail & Update Button -->
                                     <a href="{{ route('ppdb.dashboard.pendaftar.detail', $pendaftar->id) }}" 
-                                       class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#1E293B] hover:bg-slate-800 text-white shadow-xs transition-all inline-block"
+                                       class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#241012] hover:bg-slate-800 text-white shadow-xs transition-all inline-block"
                                        title="Edit Data Pendaftar">
                                         Edit / Detail
                                     </a>
-
-                                    <!-- Quick Status Toggle Dropdown -->
-                                    <div class="relative" x-data="{ statusMenu: false }">
-                                        <button 
-                                            @click="statusMenu = !statusMenu" 
-                                            class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                                            title="Ubah Status Cepat">
-                                            Status ▾
-                                        </button>
-                                        <div 
-                                            x-show="statusMenu" 
-                                            x-cloak
-                                            @click.away="statusMenu = false"
-                                            class="absolute right-0 mt-2 w-48 bg-white rounded-2xl border border-slate-100 shadow-xl z-30 p-1.5 text-left"
-                                            x-transition:enter="transition ease-out duration-150"
-                                            x-transition:enter-start="opacity-0 scale-95"
-                                            x-transition:enter-end="opacity-100 scale-100">
-                                            <button 
-                                                @click="changeStatus({{ $pendaftar->id }}, 'menunggu_verifikasi'); statusMenu = false;"
-                                                class="w-full text-left px-3 py-2 rounded-xl hover:bg-amber-50 text-xs font-semibold text-amber-800 cursor-pointer transition-colors">
-                                                ● Menunggu Verifikasi
-                                            </button>
-                                            <button 
-                                                @click="changeStatus({{ $pendaftar->id }}, 'terverifikasi'); statusMenu = false;"
-                                                class="w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-50 text-xs font-semibold text-emerald-800 cursor-pointer transition-colors">
-                                                ● Terverifikasi
-                                            </button>
-                                            <button 
-                                                @click="changeStatus({{ $pendaftar->id }}, 'lulus_seleksi'); statusMenu = false;"
-                                                class="w-full text-left px-3 py-2 rounded-xl hover:bg-blue-50 text-xs font-semibold text-blue-800 cursor-pointer transition-colors">
-                                                ● Lulus Seleksi
-                                            </button>
-                                            <button 
-                                                @click="changeStatus({{ $pendaftar->id }}, 'tidak_lulus'); statusMenu = false;"
-                                                class="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 text-xs font-semibold text-rose-800 cursor-pointer transition-colors">
-                                                ● Tidak Lolos
-                                            </button>
-                                        </div>
-                                    </div>
 
                                     <!-- Delete Button -->
                                     <form action="{{ route('ppdb.dashboard.pendaftar.destroy', $pendaftar->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data pendaftar {{ $pendaftar->nama_lengkap }} ({{ $pendaftar->nomor_registrasi }})? Data tidak dapat dipulihkan.');">
@@ -336,7 +314,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-12 text-center text-xs text-slate-500">
+                            <td colspan="6" class="py-12 text-center text-xs text-slate-500">
                                 <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center font-bold mb-3">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -344,7 +322,7 @@
                                 </div>
                                 <div class="font-bold text-slate-800 text-sm">Tidak Ditemukan Calon Siswa</div>
                                 <div class="text-slate-400 mt-1">Coba sesuaikan kata kunci pencarian atau reset filter.</div>
-                                <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="inline-block mt-3 px-4 py-2 rounded-xl bg-[#8B1D24] text-white text-xs font-semibold shadow-xs">
+                                <a href="{{ route('ppdb.dashboard.pendaftar') }}" class="inline-block mt-3 px-4 py-2 rounded-xl bg-[#7A1018] text-white text-xs font-semibold shadow-xs">
                                     Reset Semua Filter
                                 </a>
                             </td>

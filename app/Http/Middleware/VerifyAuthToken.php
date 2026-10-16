@@ -2,9 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\DevAuth;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyAuthToken
@@ -17,60 +19,16 @@ class VerifyAuthToken
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // 1. Ekstraksi access_token dari Request Cookie atau Authorization Bearer
-        $token = $this->extractToken($request);
+        // 1-2. Ambil data user: login uji coba lokal (lihat App\Support\DevAuth) atau verifikasi token ke Auth Microservice
+        $userData = DevAuth::user($request) ?? $this->fetchUserFromAuthService($request);
 
-        if (empty($token)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Token otentikasi tidak ditemukan',
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        // 2. Forward access_token ke Auth Microservice dengan format JSON Payload
-        $baseUrl = config('services.auth_service.base_url', 'http://localhost:3000');
-        $verifyUrl = rtrim($baseUrl, '/').'/api/user/verify';
-
-        try {
-            $response = Http::timeout(5)
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ])
-                ->post($verifyUrl, [
-                    'access_token' => $token,
-                ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Layanan otentikasi tidak dapat dihubungi: '.$e->getMessage(),
-            ], Response::HTTP_SERVICE_UNAVAILABLE);
-        }
-
-        if (! $response->successful() || ! $response->json('success')) {
-            $errorMessage = $response->json('message') ?? 'Token otentikasi tidak valid atau telah kedaluwarsa';
-
-            return response()->json([
-                'success' => false,
-                'message' => $errorMessage,
-            ], Response::HTTP_UNAUTHORIZED);
-        }
-
-        $userData = $response->json('data');
-
-        if (! $userData) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data pengguna tidak ditemukan dalam respon otentikasi',
-            ], Response::HTTP_UNAUTHORIZED);
+        if ($userData instanceof Response) {
+            return $userData;
         }
 
         // 3. Validasi status keaktifan akun
         if (isset($userData['status_aktif']) && $userData['status_aktif'] === false) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Akun pengguna sedang dinonaktifkan',
-            ], Response::HTTP_FORBIDDEN);
+            return $this->respondError($request, 'Akun pengguna sedang dinonaktifkan', Response::HTTP_FORBIDDEN);
         }
 
         // 4. Validasi Role (RBAC) jika parameter role disertakan pada route middleware
@@ -79,10 +37,11 @@ class VerifyAuthToken
             $allowedRoles = array_map('strtoupper', $roles);
 
             if (! in_array($userRole, $allowedRoles, true)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Akses ditolak: role '.($userData['role'] ?? 'UNKNOWN').' tidak memiliki izin untuk mengakses resource ini',
-                ], Response::HTTP_FORBIDDEN);
+                return $this->respondError(
+                    $request,
+                    'Akses ditolak: role '.($userData['role'] ?? 'UNKNOWN').' tidak memiliki izin untuk mengakses resource ini',
+                    Response::HTTP_FORBIDDEN
+                );
             }
         }
 
@@ -99,10 +58,59 @@ class VerifyAuthToken
     }
 
     /**
+     * Verifikasi access_token ke Auth Microservice. Mengembalikan data user, atau Response error.
+     */
+    protected function fetchUserFromAuthService(Request $request): array|Response
+    {
+        // 1. Ekstraksi access_token dari Request Cookie atau Authorization Bearer
+        $token = $this->extractToken($request);
+
+        if (empty($token)) {
+            return $this->respondError($request, 'Token otentikasi tidak ditemukan', Response::HTTP_UNAUTHORIZED);
+        }
+
+        // 2. Forward access_token ke Auth Microservice dengan format JSON Payload
+        $baseUrl = config('services.auth_service.base_url', 'http://localhost:3000');
+        $verifyUrl = rtrim($baseUrl, '/').'/api/user/verify';
+
+        try {
+            $response = Http::timeout(5)
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($verifyUrl, [
+                    'access_token' => $token,
+                ]);
+        } catch (\Throwable $e) {
+            Log::error('Auth Microservice connection error: '.$e->getMessage(), ['exception' => $e]);
+
+            return $this->respondError(
+                $request,
+                'Layanan otentikasi sedang tidak tersedia. Silakan coba beberapa saat lagi.',
+                Response::HTTP_SERVICE_UNAVAILABLE
+            );
+        }
+
+        if (! $response->successful() || ! $response->json('success')) {
+            $errorMessage = $response->json('message') ?? 'Token otentikasi tidak valid atau telah kedaluwarsa';
+
+            return $this->respondError($request, $errorMessage, Response::HTTP_UNAUTHORIZED);
+        }
+
+        $userData = $response->json('data');
+
+        if (! $userData) {
+            return $this->respondError($request, 'Data pengguna tidak ditemukan dalam respon otentikasi', Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $userData;
+    }
+
+    /**
      * Ekstraksi access_token dari:
      * - Authorization Bearer: Authorization: Bearer <token>
      * - Request Cookie: access_token
-     * - Fallback Request Body / Query: access_token
      */
     protected function extractToken(Request $request): ?string
     {
@@ -126,12 +134,21 @@ class VerifyAuthToken
             }
         }
 
-        // 3. Fallback Request Body / Input parameter: access_token
-        $inputToken = $request->input('access_token');
-        if (! empty($inputToken) && is_string($inputToken)) {
-            return trim($inputToken);
+        return null;
+    }
+
+    /**
+     * Respon error: JSON untuk request API/AJAX, redirect flash message untuk browser web biasa.
+     */
+    protected function respondError(Request $request, string $message, int $status): Response
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], $status);
         }
 
-        return null;
+        return redirect()->route('ppdb.index')->with('warning', $message);
     }
 }

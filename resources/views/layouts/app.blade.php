@@ -8,12 +8,12 @@
     <meta name="description" content="@yield('meta_description', 'Portal Resmi Pendaftaran Peserta Didik Baru (PPDB) SMK Plus Pelita Nusantara Bogor. Pilihan Jurusan Vokasi Unggulan & Fasilitas Terlengkap.')">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/favicon.svg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/logosmkpenus.png') }}">
 
     <!-- Google Fonts: Oswald & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
     <!-- Vite Styles & Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -23,20 +23,18 @@
 
     @stack('styles')
 </head>
-<body class="bg-[#F5F4F2] text-brand-ink antialiased min-h-screen flex flex-col font-sans selection:bg-brand-darkred selection:text-white">
-    <!-- Floating Pill Header -->
+{{-- Latar putih seperti landing page; jarak untuk navbar fixed diatur oleh hero tiap halaman (pt-32 md:pt-40) --}}
+<body class="bg-white text-brand-ink antialiased min-h-screen flex flex-col font-sans selection:bg-brand-darkred selection:text-white">
+    @include('partials.dropdown-engine')
     <x-header />
-
-    <!-- Main Content with spacer for fixed navbar -->
-    <div class="h-24 sm:h-28"></div>
 
     <div class="flex-1">
         @yield('content')
     </div>
 
-    <!-- Editorial Footer -->
     <x-footer />
 
+    @include('partials.sketch-engine')
     @stack('scripts')
 </body>
 </html>

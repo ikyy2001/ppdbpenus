@@ -32,7 +32,7 @@
                 </span>
                 <span class="text-xs text-slate-500 font-medium">Sinkron dengan /ppdb/akomodasi</span>
             </div>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">Konfigurasi Tarif PPDB, SPP & Rekening</h2>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 mt-1">Konfigurasi Tarif PPDB, SPP & Rekening</h2>
             <p class="text-xs text-slate-500 mt-0.5">Nilai yang diubah di sini langsung memengaruhi kalkulator simulasi cicilan dan formulir publik.</p>
         </div>
 
@@ -50,7 +50,7 @@
         <!-- SECTION 1: TARIF & BIAYA PENDIDIKAN -->
         <div class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-5">
             <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <div class="w-9 h-9 rounded-xl bg-red-50 text-[#8B1D24] flex items-center justify-center font-bold text-xs">
+                <div class="w-9 h-9 rounded-xl bg-red-50 text-[#7A1018] flex items-center justify-center font-bold text-xs">
                     Rp
                 </div>
                 <div>
@@ -142,7 +142,7 @@
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Nomor Rekening</label>
-                                <input type="text" :name="'rekening['+index+'][nomor]'" x-model="rek.nomor" required placeholder="7188-299-102" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-blue-600">
+                                <input type="text" :name="'rekening['+index+'][nomor]'" x-model="rek.nomor" required placeholder="7188-299-102" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-900 tabular-nums font-bold focus:outline-none focus:border-blue-600">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Atas Nama (Pemilik)</label>
@@ -183,7 +183,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">No. WhatsApp Panitia (Awali 62)</label>
-                    <input type="text" name="kontak_wa" value="{{ old('kontak_wa', $kontakWa) }}" required placeholder="6281283921029" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-mono font-bold focus:outline-none focus:border-emerald-600 focus:bg-white">
+                    <input type="text" name="kontak_wa" value="{{ old('kontak_wa', $kontakWa) }}" required placeholder="6281283921029" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 tabular-nums font-bold focus:outline-none focus:border-emerald-600 focus:bg-white">
                     <p class="text-[10px] text-slate-400 mt-1">Gunakan format internasional tanpa spasi (cth: 62812xxxxxx).</p>
                 </div>
 
@@ -204,7 +204,7 @@
             <span class="text-xs text-slate-500">Periksa kembali data sebelum menyimpan perubahan.</span>
             <button 
                 type="submit" 
-                class="px-6 py-2.5 rounded-xl bg-[#8B1D24] hover:bg-[#72151B] text-white text-xs font-bold shadow-md shadow-red-900/20 transition-all flex items-center gap-2 cursor-pointer transform active:scale-95">
+                class="px-6 py-2.5 rounded-xl bg-[#7A1018] hover:bg-[#5C0B12] text-white text-xs font-bold shadow-md shadow-red-900/20 transition-all flex items-center gap-2 cursor-pointer transform active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 <span>Simpan Seluruh Pengaturan</span>
             </button>

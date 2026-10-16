@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'asset_url' => env('ASSET_URL', '/ppdb'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -122,5 +124,13 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+
+    /*
+    | Tautan "Pintas Dashboard" ke panel admin lain. Di server semuanya satu domain (path relatif);
+    | saat development tiap aplikasi jalan di port berbeda, jadi isi URL lengkap di .env.
+    */
+    'cms_admin_url' => env('CMS_ADMIN_URL', '/admin'),
+    'bkk_admin_url' => env('BKK_ADMIN_URL', '/bkk/admin'),
 
 ];
